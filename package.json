@@ -1,0 +1,25 @@
+{
+  "name": "cbdii-2025-web",
+  "version": "1.0.0",
+  "description": "",
+  "main": "main.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Pipealvz/cbd2-web.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/Pipealvz/cbd2-web/issues"
+  },
+  "homepage": "https://github.com/Pipealvz/cbd2-web#readme",
+  "dependencies": {
+    "dotenv": "^17.2.3",
+    "oracledb": "^6.10.0"
+  }
+}

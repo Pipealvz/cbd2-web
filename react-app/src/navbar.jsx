@@ -8,8 +8,8 @@ function Navbar({ onCreateRequest }) {
                     Crear solicitud
                 </button>
                 <form className="w-25">
-                    <div class="input-group">
-                        <input type="text" class="form-control" placeholder="Username" aria-label="Username" aria-describedby="basic-addon1" />
+                    <div className="input-group">
+                        <input type="text" className="form-control" placeholder="Username" aria-label="Username" aria-describedby="basic-addon1" />
                     </div>
                 </form>
             </div>
