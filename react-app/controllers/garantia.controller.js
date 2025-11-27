@@ -1,4 +1,4 @@
-const db = require('../db');
+const db = require('../config/db-oracle');
 
 // Obtener todas las garantías
 exports.getAll = async (req, res) => {

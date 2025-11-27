@@ -3,11 +3,10 @@ const app = express();
 require('dotenv').config();
 
 const db = require('./config/db-oracle');
-const monitorPool = require('./middleware/monitor-pool');
 const routes = require('./routes/index');
+const port = 26001;
 
 app.use(express.json());
-app.use(monitorPool);
 
 app.use('/api', routes);
 
@@ -17,8 +16,8 @@ app.use('/api', routes);
     await db.testCon();
     console.log("Oracle inicializado correctamente.");
 
-    app.listen(3000, () =>
-      console.log("Servidor ejecutándose en puerto 3000")
+    app.listen(port, () =>
+      console.log(`Servidor ejecutándose en puerto ${port}`)
     );
 
   } catch (err) {

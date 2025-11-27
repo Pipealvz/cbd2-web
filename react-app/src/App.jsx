@@ -2,6 +2,7 @@ import { Routes, Route, useNavigate } from 'react-router-dom';
 import RequestForm from './request-form';
 import Navbar from './navbar';
 import './App.css';
+import LeerSolicitud from './leerSolicitud';
 
 function App() {
     const navigate = useNavigate();
@@ -54,6 +55,7 @@ function App() {
                     </div>
                 } />
                 <Route path="/solicitud" element={<RequestForm />} />
+                <Route path="/solicitudes" element={<LeerSolicitud />} />
             </Routes>
         </div>
     );

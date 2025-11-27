@@ -10,13 +10,12 @@ exports.getAll = async (req, res) => {
   }
 };
 
-// Obtener por ID
+// Obtener por ID (usando id_repuesto como identificador)
 exports.getById = async (req, res) => {
   try {
     const { id } = req.params;
     const result = await db.execute(
-      `SELECT * FROM Detalle_Repuesto WHERE id_detalle_rep = :id`,
-      [id]
+      `SELECT * FROM Detalle_Repuesto WHERE id_repuesto = ${id}`
     );
     res.json(result.rows[0] || {});
   } catch (err) {
@@ -27,12 +26,31 @@ exports.getById = async (req, res) => {
 // Crear nuevo registro
 exports.create = async (req, res) => {
   try {
-    const { id_detalle_rep, id_repuesto, serial_rep, id_marca, id_tipo_rep, estado_disp } = req.body;
+    const {
+      id_repuesto,
+      nombre_rep,
+      descripcion_rep,
+      serial_rep,
+      id_marca,
+      id_tipo_rep,
+      estado_disp,
+      id_factura,
+      id_solicitud,
+      precio_und
+    } = req.body;
+
     await db.execute(
-      `INSERT INTO Detalle_Repuesto (id_detalle_rep, id_repuesto, serial_rep, id_marca, id_tipo_rep, estado_disp)
-       VALUES (:id_detalle_rep, :id_repuesto, :serial_rep, :id_marca, :id_tipo_rep, :estado_disp)`,
-      [id_detalle_rep, id_repuesto, serial_rep, id_marca, id_tipo_rep, estado_disp]
+      `INSERT INTO Detalle_Repuesto (
+        id_repuesto, nombre_rep, descripcion_rep, serial_rep,
+        id_marca, id_tipo_rep, estado_disp, id_factura,
+        id_solicitud, precio_und
+      ) VALUES (
+        ${id_repuesto}, ${nombre_rep}, ${descripcion_rep}, ${serial_rep},
+        ${id_marca}, ${id_tipo_rep}, ${estado_disp}, ${id_factura},
+        ${id_solicitud}, ${precio_und}
+      )`
     );
+
     res.status(201).json({ message: 'Detalle_Repuesto creado correctamente' });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -43,17 +61,33 @@ exports.create = async (req, res) => {
 exports.update = async (req, res) => {
   try {
     const { id } = req.params;
-    const { id_repuesto, serial_rep, id_marca, id_tipo_rep, estado_disp } = req.body;
+    const {
+      nombre_rep,
+      descripcion_rep,
+      serial_rep,
+      id_marca,
+      id_tipo_rep,
+      estado_disp,
+      id_factura,
+      id_solicitud,
+      precio_und
+    } = req.body;
+
     await db.execute(
       `UPDATE Detalle_Repuesto
-       SET id_repuesto = :id_repuesto,
-           serial_rep = :serial_rep,
-           id_marca = :id_marca,
-           id_tipo_rep = :id_tipo_rep,
-           estado_disp = :estado_disp
-       WHERE id_detalle_rep = :id`,
-      [id_repuesto, serial_rep, id_marca, id_tipo_rep, estado_disp, id]
+       SET 
+         nombre_rep = ${nombre_rep},
+         descripcion_rep = ${descripcion_rep},
+         serial_rep = ${serial_rep},
+         id_marca = ${id_marca},
+         id_tipo_rep = ${id_tipo_rep},
+         estado_disp = ${estado_disp},
+         id_factura = ${id_factura},
+         id_solicitud = ${id_solicitud},
+         precio_und = ${precio_und}
+       WHERE id_repuesto = ${id}`
     );
+
     res.json({ message: 'Detalle_Repuesto actualizado correctamente' });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -65,8 +99,7 @@ exports.remove = async (req, res) => {
   try {
     const { id } = req.params;
     await db.execute(
-      `DELETE FROM Detalle_Repuesto WHERE id_detalle_rep = :id`,
-      [id]
+      `DELETE FROM Detalle_Repuesto WHERE id_repuesto = ${id}`
     );
     res.json({ message: 'Detalle_Repuesto eliminado correctamente' });
   } catch (err) {

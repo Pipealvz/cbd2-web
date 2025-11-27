@@ -29,7 +29,7 @@ module.exports = {
             const conn = await db.getConnection();
             await conn.execute(
                 `INSERT INTO Marca (id_marca, nombre_marca) VALUES (:id, :name)`,
-                [req.body.id, req.body.name]
+                { id: req.body.id, name: req.body.name }
             );
             await conn.commit();
             await conn.close();
