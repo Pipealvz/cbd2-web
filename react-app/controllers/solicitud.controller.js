@@ -2,17 +2,18 @@ const db = require('../config/db-oracle');
 
 exports.getAllUser = async (req, res) => {
     try {
-        // Validar que el middleware de auth envió el id del usuario
         const userId = req.user?.id;
 
         if (!userId) {
             return res.status(401).json({ error: "Usuario no autenticado o token inválido." });
         }
 
-        // Consulta que solo obtiene solicitudes del usuario logueado
+        // Debug: confirmar que llega el id
+        // console.log('getAllUser userId=', userId);
+
         const result = await db.execute(
-            `SELECT * FROM Solicitud WHERE usuario_id = ?`,
-            [userId]
+            `SELECT * FROM Solicitud WHERE usuario_id = :userId`,
+            { userId }
         );
 
         res.json(result.rows);
@@ -39,7 +40,7 @@ exports.getById = async (req, res) => {
 
         const result = await db.execute(
             `SELECT * FROM Solicitud WHERE id_solicitud = :id`,
-            [id]
+            { id }
         );
 
         res.json(result.rows[0] || {});
@@ -65,20 +66,13 @@ exports.create = async (req, res) => {
       id_tipous
     } = req.body;
 
-    // --- Normalizar la fecha ---
-    let fechaOracle = fecha_creacion;
-    // Si trae milisegundos → los quitamos
-    if (fechaOracle.includes('.')) {
-      fechaOracle = fechaOracle.split('.')[0];
-    }
-    // Si trae Z al final → se quita
+    let fechaOracle = fecha_creacion || '';
+    if (fechaOracle.includes('.')) fechaOracle = fechaOracle.split('.')[0];
     fechaOracle = fechaOracle.replace('Z', '');
-    // Si viene sin "T", agregarla
     if (fechaOracle.includes(' ') && !fechaOracle.includes('T')) {
       fechaOracle = fechaOracle.replace(' ', 'T');
     }
 
-    // --- Query con binding por nombre ---
     await db.execute(
       `
       INSERT INTO Solicitud (
@@ -103,7 +97,8 @@ exports.create = async (req, res) => {
         fecha_creacion: fechaOracle,
         id_servicio,
         id_tipous
-      }
+      },
+      { autoCommit: true }
     );
 
     res.status(201).json({ message: 'Solicitud creada correctamente' });
@@ -145,7 +140,7 @@ exports.update = async (req, res) => {
         id_servicio = :id_servicio,
         id_tipous = :id_tipous
        WHERE id_solicitud = :id`,
-            [
+            {
                 id_factura,
                 id_persona,
                 id_persona_empleado,
@@ -157,7 +152,8 @@ exports.update = async (req, res) => {
                 id_servicio,
                 id_tipous,
                 id
-            ]
+            },
+            { autoCommit: true }
         );
 
         res.json({ message: 'Solicitud actualizada correctamente' });
@@ -173,7 +169,8 @@ exports.remove = async (req, res) => {
 
         await db.execute(
             `DELETE FROM Solicitud WHERE id_solicitud = :id`,
-            [id]
+            { id },
+            { autoCommit: true }
         );
 
         res.json({ message: 'Solicitud eliminada correctamente' });
