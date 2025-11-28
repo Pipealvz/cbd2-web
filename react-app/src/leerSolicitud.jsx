@@ -21,20 +21,20 @@ function LeerSolicitud() {
       return;
     }
 
-    fetch(`http://localhost:26001/api/solicitud/user/${userId}`, {
+    fetch(`http://localhost:26001/api/solicitud/user/${auth.user.ID_PERSONA}`, {
       headers: {
         ...getAuthHeader(),
       },
     })
       .then((res) => res.json())
       .then((data) => {
-        console.log("DATA RECIBIDA:", data);
+        //console.log("DATA RECIBIDA:", data);
         setSolicitudes(Array.isArray(data) ? data : []);
       })
       .catch((err) => console.error("Error al obtener solicitudes:", err));
 
     // Obtener servicios para el select
-    fetch("http://localhost:26001/api/servicio/all", {
+    fetch("http://localhost:26001/api/servicio", {
       headers: {
         ...getAuthHeader(),
       },
@@ -244,3 +244,5 @@ function LeerSolicitud() {
 }
 
 export default LeerSolicitud;
+////sdasadasddassda
+console.log("DATA RECIBIDA:", data);
