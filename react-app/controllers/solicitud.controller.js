@@ -2,23 +2,26 @@ const db = require('../config/db-oracle');
 
 exports.getAllUser = async (req, res) => {
     try {
+        console.log('getAllUser req.user =', req.user); // <-- debug auth
         const userId = req.user?.id;
 
         if (!userId) {
             return res.status(401).json({ error: "Usuario no autenticado o token inválido." });
         }
 
-        // Debug: confirmar que llega el id
-        // console.log('getAllUser userId=', userId);
+        console.log('getAllUser userId =', userId); // <-- debug id recibido
 
         const result = await db.execute(
             `SELECT * FROM Solicitud WHERE usuario_id = :userId`,
             { userId }
         );
 
-        res.json(result.rows);
+        console.log('getAllUser rows =', (result && result.rows) ? result.rows.length : 0); // <-- debug resultado
+
+        res.json(result.rows || []);
 
     } catch (err) {
+        console.error(err);
         res.status(500).json({ error: err.message });
     }
 };
@@ -49,7 +52,7 @@ exports.getById = async (req, res) => {
     }
 };
 
-// Crear nueva solicitud
+// Crear nueva solicitud (normalizar fecha)
 exports.create = async (req, res) => {
   try {
     const {
@@ -73,6 +76,8 @@ exports.create = async (req, res) => {
       fechaOracle = fechaOracle.replace(' ', 'T');
     }
 
+    if (!fechaOracle) fechaOracle = null; // <-- evitar TO_DATE('', ...)
+
     await db.execute(
       `
       INSERT INTO Solicitud (
@@ -81,8 +86,8 @@ exports.create = async (req, res) => {
       ) VALUES (
         :id_solicitud, :id_factura, :id_persona, :id_persona_empleado, :id_estado,
         :observaciones, :id_garantia, :id_equipo,
-        TO_DATE(:fecha_creacion, 'YYYY-MM-DD"T"HH24:MI:SS'),
-        :id_servicio, :id_tipous
+        ${'${fechaOracle ? "TO_DATE(:fecha_creacion, \'YYYY-MM-DD\"T\"HH24:MI:SS\')" : "NULL"}'}
+        , :id_servicio, :id_tipous
       )
       `,
       {
@@ -103,6 +108,7 @@ exports.create = async (req, res) => {
 
     res.status(201).json({ message: 'Solicitud creada correctamente' });
   } catch (err) {
+    console.error(err);
     res.status(500).json({ error: err.message });
   }
 };
