@@ -50,10 +50,6 @@ exports.getById = async (req, res) => {
             `SELECT * FROM Solicitud WHERE id_solicitud = :id`,
             { id }
         );
-    const result = await db.execute(
-      `SELECT * FROM Solicitud WHERE id_solicitud = :id`,
-      [id]
-    );
 
     res.json(result.rows[0] || {});
   } catch (err) {
@@ -168,20 +164,6 @@ exports.update = async (req, res) => {
             },
             { autoCommit: true }
         );
-      [
-        id_factura,
-        id_persona,
-        id_persona_empleado,
-        id_estado,
-        observaciones,
-        id_garantia,
-        id_equipo,
-        fecha_creacion,
-        id_servicio,
-        id_tipous,
-        id
-      ]
-    );
 
     res.json({ message: 'Solicitud actualizada correctamente' });
   } catch (err) {
@@ -199,10 +181,6 @@ exports.remove = async (req, res) => {
             { id },
             { autoCommit: true }
         );
-    await db.execute(
-      `DELETE FROM Solicitud WHERE id_solicitud = :id`,
-      [id]
-    );
 
     res.json({ message: 'Solicitud eliminada correctamente' });
   } catch (err) {
