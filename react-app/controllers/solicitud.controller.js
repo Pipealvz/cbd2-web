@@ -4,10 +4,13 @@ exports.getAllUser = async (req, res) => {
     try {
         console.log('getAllUser req.user =', req.user); // <-- debug auth
         const userId = req.user?.id;
+  try {
+    // Validar que el middleware de auth envió el id del usuario
+    const userId = req.user?.id;
 
-        if (!userId) {
-            return res.status(401).json({ error: "Usuario no autenticado o token inválido." });
-        }
+    if (!userId) {
+      return res.status(401).json({ error: "Usuario no autenticado o token inválido." });
+    }
 
         console.log('getAllUser userId =', userId); // <-- debug id recibido
 
@@ -15,45 +18,59 @@ exports.getAllUser = async (req, res) => {
             `SELECT * FROM Solicitud WHERE usuario_id = :userId`,
             { userId }
         );
+    // Consulta que solo obtiene solicitudes del usuario logueado
+    const result = await db.execute(
+      `SELECT * FROM Solicitud WHERE usuario_id = ?`,
+      [userId]
+    );
 
         console.log('getAllUser rows =', (result && result.rows) ? result.rows.length : 0); // <-- debug resultado
 
         res.json(result.rows || []);
+    res.json(result.rows);
 
     } catch (err) {
         console.error(err);
         res.status(500).json({ error: err.message });
     }
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 };
 
 // Obtener todas las solicitudes
 exports.getAll = async (req, res) => {
-    try {
-        const result = await db.execute(`SELECT * FROM Solicitud`);
-        res.json(result.rows);
-    } catch (err) {
-        res.status(500).json({ error: err.message });
-    }
+  try {
+    const result = await db.execute(`SELECT * FROM Solicitud`);
+    res.json(result.rows);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 };
 
 // Obtener solicitud por ID
 exports.getById = async (req, res) => {
-    try {
-        const { id } = req.params;
+  try {
+    const { id } = req.params;
 
         const result = await db.execute(
             `SELECT * FROM Solicitud WHERE id_solicitud = :id`,
             { id }
         );
+    const result = await db.execute(
+      `SELECT * FROM Solicitud WHERE id_solicitud = :id`,
+      [id]
+    );
 
-        res.json(result.rows[0] || {});
-    } catch (err) {
-        res.status(500).json({ error: err.message });
-    }
+    res.json(result.rows[0] || {});
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 };
 
 // Crear nueva solicitud (normalizar fecha)
 exports.create = async (req, res) => {
+  const userId = req.user?.id_persona;
   try {
     const {
       id_solicitud,
@@ -116,24 +133,24 @@ exports.create = async (req, res) => {
 
 // Actualizar solicitud
 exports.update = async (req, res) => {
-    try {
-        const { id } = req.params;
+  try {
+    const { id } = req.params;
 
-        const {
-            id_factura,
-            id_persona,
-            id_persona_empleado,
-            id_estado,
-            observaciones,
-            id_garantia,
-            id_equipo,
-            fecha_creacion,
-            id_servicio,
-            id_tipous
-        } = req.body;
+    const {
+      id_factura,
+      id_persona,
+      id_persona_empleado,
+      id_estado,
+      observaciones,
+      id_garantia,
+      id_equipo,
+      fecha_creacion,
+      id_servicio,
+      id_tipous
+    } = req.body;
 
-        await db.execute(
-            `UPDATE Solicitud
+    await db.execute(
+      `UPDATE Solicitud
        SET
         id_factura = :id_factura,
         id_persona = :id_persona,
@@ -161,26 +178,44 @@ exports.update = async (req, res) => {
             },
             { autoCommit: true }
         );
+      [
+        id_factura,
+        id_persona,
+        id_persona_empleado,
+        id_estado,
+        observaciones,
+        id_garantia,
+        id_equipo,
+        fecha_creacion,
+        id_servicio,
+        id_tipous,
+        id
+      ]
+    );
 
-        res.json({ message: 'Solicitud actualizada correctamente' });
-    } catch (err) {
-        res.status(500).json({ error: err.message });
-    }
+    res.json({ message: 'Solicitud actualizada correctamente' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 };
 
 // Eliminar solicitud
 exports.remove = async (req, res) => {
-    try {
-        const { id } = req.params;
+  try {
+    const { id } = req.params;
 
         await db.execute(
             `DELETE FROM Solicitud WHERE id_solicitud = :id`,
             { id },
             { autoCommit: true }
         );
+    await db.execute(
+      `DELETE FROM Solicitud WHERE id_solicitud = :id`,
+      [id]
+    );
 
-        res.json({ message: 'Solicitud eliminada correctamente' });
-    } catch (err) {
-        res.status(500).json({ error: err.message });
-    }
+    res.json({ message: 'Solicitud eliminada correctamente' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 };
