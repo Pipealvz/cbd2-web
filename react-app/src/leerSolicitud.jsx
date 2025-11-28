@@ -11,40 +11,60 @@ function LeerSolicitud() {
   // 🔹 Definir rol (usuario o empleado)
   const rol = "empleado"; // <-- CAMBIA esto según login real
 
+  const [servicios, setServicios] = useState([]); // <-- lista de servicios
+
   useEffect(() => {
-    //console.log("auth en leerSolicitud:", auth);
-    fetch(`http://localhost:26001/api/solicitud/user/${auth?.user?.id_persona}`, {
+    // Obtener solicitudes
+    fetch("http://localhost:26001/api/solicitud/all", {
       headers: {
         ...getAuthHeader(),
       },
     })
       .then((res) => res.json())
       .then((data) => {
-        //console.log("DATA RECIBIDA:", data);
-        // Normalizar claves a las que espera el front (ID_SOMETHING)
-        const normalized = Array.isArray(data)
-          ? data.map((row) => {
-              const out = {};
-              Object.keys(row).forEach((k) => {
-                out[k.toUpperCase()] = row[k];
-              });
-              return out;
-            })
-          : [];
-        // Filtrar por usuario logueado
-        const userId = auth?.user?.id_persona;
-        //console.log("userId para filtrar:", userId);
-        const filtered = userId
-          ? normalized.filter(s => s.ID_PERSONA === userId)
-          : normalized;
-        setSolicitudes(filtered);
+        console.log("DATA RECIBIDA:", data);
+        setSolicitudes(data);
       })
       .catch((err) => console.error("Error al obtener solicitudes:", err));
-  }, [auth]);
+
+    // Obtener servicios para el select
+    fetch("http://localhost:26001/api/servicio/all", {
+      headers: {
+        ...getAuthHeader(),
+      },
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        console.log("SERVICIOS RECIBIDOS:", data);
+        setServicios(Array.isArray(data) ? data : []);
+      })
+      .catch((err) => {
+        console.error("Error al obtener servicios:", err);
+        setServicios([]);
+      });
+  }, []);
 
   const verDetalles = (sol) => {
+    // Opciones de estado (línea ~55)
+    const estadoOptions = `
+      <option value="1" ${sol.ID_ESTADO == 1 ? "selected" : ""}>Completado</option>
+      <option value="0" ${sol.ID_ESTADO == 0 ? "selected" : ""}>No completado</option>
+    `;
+
+    // Opciones de servicios (línea ~73)
+    const serviciosOptions = servicios.length
+      ? servicios
+          .map(
+            (sv) =>
+              `<option value="${sv.ID_SERVICIO}" ${
+                sv.ID_SERVICIO == sol.ID_SERVICIO ? "selected" : ""
+              }>${sv.NOMBRE_SERVICIO ?? sv.NOMBRE ?? sv.DESCRIPCION ?? sv.ID_SERVICIO}</option>`
+          )
+          .join("")
+      : `<option value="${sol.ID_SERVICIO ?? ""}" selected>${sol.ID_SERVICIO ?? "Sin servicio"}</option>`;
+
     Swal.fire({
-      title: <strong>Solicitud #${sol.ID_SOLICITUD}</strong>,
+      title: `<strong>Solicitud #${sol.ID_SOLICITUD}</strong>`,
       width: "700px",
       confirmButtonText: "Guardar",
       confirmButtonColor: "#0d6efd",
@@ -54,7 +74,7 @@ function LeerSolicitud() {
 
       html: `
         <style>
-          .swal2-input, .swal2-textarea {
+          .swal2-input, .swal2-textarea, .swal2-select {
             width: 90% !important;
             margin: 5px auto;
           }
@@ -72,7 +92,9 @@ function LeerSolicitud() {
           <input id="ID_PERSONA_EMPLEADO" class="swal2-input" value="${sol.ID_PERSONA_EMPLEADO}" ${rol === "usuario" ? "disabled" : ""}>
 
           <label><b>Estado</b></label>
-          <input id="ID_ESTADO" class="swal2-input" type="number" value="${sol.ID_ESTADO}" ${rol === "usuario" ? "disabled" : ""}>
+          <select id="ID_ESTADO" class="swal2-select" ${rol === "usuario" ? "disabled" : ""}>
+            ${estadoOptions}
+          </select>
 
           <label><b>OBSERVACIONES</b></label>
           <textarea id="OBSERVACIONES" class="swal2-textarea">${sol.OBSERVACIONES ?? ""}</textarea>
@@ -81,13 +103,15 @@ function LeerSolicitud() {
           <input id="ID_GARANTIA" class="swal2-input" value="${sol.ID_GARANTIA ?? ""}">
 
           <label><b>ID Equipo</b></label>
-          <input id="ID_EQUIPO" class="swal2-input" value="${sol.ID_EQUIPO}" ${rol === "usuario" ? "" : ""}>
+          <input id="ID_EQUIPO" class="swal2-input" value="${sol.ID_EQUIPO ?? ""}">
 
           <label><b>Fecha Creación</b></label>
           <input class="swal2-input" value="${sol.FECHA_CREACION}" disabled>
 
-          <label><b>ID Servicio</b></label>
-          <input id="ID_SERVICIO" class="swal2-input" value="${sol.ID_SERVICIO}">
+          <label><b>Servicio</b></label>
+          <select id="ID_SERVICIO" class="swal2-select">
+            ${serviciosOptions}
+          </select>
 
           <label><b>ID Tipo Servicio</b></label>
           <input id="ID_TIPOUS" class="swal2-input" value="${sol.ID_TIPOUS}">
@@ -109,8 +133,8 @@ function LeerSolicitud() {
       if (res.isConfirmed) {
         console.log("Datos modificados:", res.value);
 
-        // aquí podrías hacer un PUT a la API
-        // fetch("http://localhost:26001/api/solicitud/"+sol.id_solicitud, { ... })
+        // aquí podrías hacer un PUT a la API con los valores seleccionados
+        // fetch("http://localhost:26001/api/solicitud/"+sol.ID_SOLICITUD, { method: 'PUT', ... })
 
         Swal.fire("Guardado", "La solicitud se actualizó correctamente", "success");
       }
