@@ -13,28 +13,18 @@ function LeerSolicitud() {
   const rol = "empleado"; // <-- CAMBIA esto según login real
 
   useEffect(() => {
-    // Obtener solicitudes del usuario logueado
-    const userId = auth?.user?.ID_PERSONA;
-    
-    if (!userId) {
-      console.warn("Usuario no autenticado");
-      return;
-    }
-
-    fetch(`http://localhost:26001/api/solicitud/user/${userId}`, {
+    // Obtener solicitudes
+    fetch(`http://localhost:26001/api/solicitud/user/${auth.user.ID_PERSONA}`, {
       headers: {
-        ...getAuthHeader(),
+        ...getAuthHeader(),  // 👉 Enviamos Authorization: Bearer token
       },
     })
       .then((res) => res.json())
-      .then((data) => {
-        console.log("DATA RECIBIDA:", data);
-        setSolicitudes(Array.isArray(data) ? data : []);
-      })
+      .then((data) => { console.log("DATA RECIBIDA:", data); setSolicitudes(data) })
       .catch((err) => console.error("Error al obtener solicitudes:", err));
 
     // Obtener servicios para el select
-    fetch("http://localhost:26001/api/servicio/all", {
+    fetch("http://localhost:26001/api/servicio/servicios", {
       headers: {
         ...getAuthHeader(),
       },
@@ -48,7 +38,7 @@ function LeerSolicitud() {
         console.error("Error al obtener servicios:", err);
         setServicios([]);
       });
-  }, [auth]);
+  }, []);
 
   const verDetalles = (sol) => {
     // Construir opciones del select de servicios
