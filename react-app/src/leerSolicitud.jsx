@@ -31,71 +31,93 @@ function LeerSolicitud() {
       showCancelButton: true,
       cancelButtonText: "Cerrar",
       background: "#ffffff",
+      didOpen: (modal) => {
+      const inputs = modal.querySelectorAll(".swal2-input, .swal2-textarea, .swal2-select");
+      inputs.forEach((input) => {
+        input.style.borderRadius = "12px";
+        input.style.border = "1px solid #e0e0e0";
+        input.style.padding = "10px 12px";
+        input.style.fontFamily = "inherit";
+      });
+      },
 
       html: `
-        <style>
-          .swal2-input, .swal2-textarea {
-            width: 90% !important;
-            margin: 5px auto;
-          }
-        </style>
+      <style>
+        .swal2-input, .swal2-textarea, .swal2-select {
+        width: 90% !important;
+        margin: 5px auto;
+        border-radius: 12px !important;
+        border: 1px solid #e0e0e0 !important;
+        padding: 10px 12px !important;
+        }
+        .swal2-textarea {
+        resize: vertical;
+        min-height: 80px;
+        }
+        label {
+        display: block;
+        margin-top: 12px;
+        margin-bottom: 5px;
+        color: #0d6efd;
+        }
+      </style>
 
-        <div style="text-align:left; font-size:15px;">
+      <div style="text-align:left; font-size:15px;">
 
-          <label><b>ID Factura</b></label>
-          <input class="swal2-input" value="${sol.ID_FACTURA}" disabled>
+        <label><b>ID Factura</b></label>
+        <input class="swal2-input" value="${sol.ID_FACTURA}" disabled>
 
-          <label><b>Persona</b></label>
-          <input class="swal2-input" value="${sol.ID_PERSONA}" disabled>
+        <label><b>Persona</b></label>
+        <input class="swal2-input" value="${sol.ID_PERSONA}" disabled>
 
-          <label><b>Empleado Responsable</b></label>
-          <input id="ID_PERSONA_EMPLEADO" class="swal2-input" value="${sol.ID_PERSONA_EMPLEADO}" ${rol === "usuario" ? "disabled" : ""}>
+        <label><b>Empleado Responsable</b></label>
+        <input id="ID_PERSONA_EMPLEADO" class="swal2-input" value="${sol.ID_PERSONA_EMPLEADO}" ${rol === "usuario" ? "disabled" : ""}>
 
-          <label><b>Estado</b></label>
-          <select id="ID_ESTADO" class="swal2-select" ${rol === "usuario" ? "disabled" : ""}>
-            <option value="1" ${sol.ID_ESTADO == 1 ? "selected" : ""}>Completado</option>
-            <option value="0" ${sol.ID_ESTADO == 0 ? "selected" : ""}>No completado</option>
-          </select>
+        <label><b>Estado</b></label>
+        <select id="ID_ESTADO" class="swal2-select" ${rol === "usuario" ? "disabled" : ""}>
+        <option value="1" ${sol.ID_ESTADO == 1 ? "selected" : ""}>Completado</option>
+        <option value="0" ${sol.ID_ESTADO == 0 ? "selected" : ""}>No completado</option>
+        </select>
 
-          <label><b>OBSERVACIONES</b></label>
-          <textarea id="OBSERVACIONES" class="swal2-textarea">${sol.OBSERVACIONES ?? ""}</textarea>
+        <label><b>OBSERVACIONES</b></label>
+        <textarea id="OBSERVACIONES" class="swal2-textarea">${sol.OBSERVACIONES ?? ""}</textarea>
 
-          <label><b>ID Garantía</b></label>
-          <input id="ID_GARANTIA" class="swal2-input" value="${sol.ID_GARANTIA ?? ""}">
+        <label><b>ID Garantía</b></label>
+        <input id="ID_GARANTIA" class="swal2-input" value="${sol.ID_GARANTIA ?? ""}">
 
-          <label><b>ID Equipo</b></label>
-          <input id="ID_EQUIPO" class="swal2-input" value="${sol.ID_EQUIPO}" ${rol === "usuario" ? "" : ""}>
+        <label><b>ID Equipo</b></label>
+        <input id="ID_EQUIPO" class="swal2-input" value="${sol.ID_EQUIPO}" ${rol === "usuario" ? "" : ""}>
 
-          <label><b>Fecha Creación</b></label>
-          <input class="swal2-input" value="${sol.FECHA_CREACION}" disabled>
+        <label><b>Fecha Creación</b></label>
+        <input class="swal2-input" value="${sol.FECHA_CREACION}" disabled>
 
-          <label><b>ID Servicio</b></label>
-          <input id="ID_SERVICIO" class="swal2-input" value="${sol.ID_SERVICIO}">
+        <label><b>ID Servicio</b></label>
+        <input id="ID_SERVICIO" class="swal2-input" value="${sol.ID_SERVICIO}">
 
-          <label><b>ID Tipo Servicio</b></label>
-          <input id="ID_TIPOUS" class="swal2-input" value="${sol.ID_TIPOUS}">
-        </div>
+        <label><b>ID Tipo Servicio</b></label>
+        <input id="ID_TIPOUS" class="swal2-input" value="${sol.ID_TIPOUS}">
+      </div>
       `,
 
       preConfirm: () => {
-        return {
-          ID_PERSONA_EMPLEADO: document.getElementById("ID_PERSONA_EMPLEADO").value,
-          ID_ESTADO: document.getElementById("ID_ESTADO").value,
-          OBSERVACIONES: document.getElementById("OBSERVACIONES").value,
-          ID_GARANTIA: document.getElementById("ID_GARANTIA").value,
-          ID_EQUIPO: document.getElementById("ID_EQUIPO").value,
-          ID_SERVICIO: document.getElementById("ID_SERVICIO").value,
-          ID_TIPOUS: document.getElementById("ID_TIPOUS").value
-        };
+      return {
+        ID_PERSONA_EMPLEADO: document.getElementById("ID_PERSONA_EMPLEADO").value,
+        ID_ESTADO: document.getElementById("ID_ESTADO").value,
+        OBSERVACIONES: document.getElementById("OBSERVACIONES").value,
+        ID_GARANTIA: document.getElementById("ID_GARANTIA").value,
+        ID_EQUIPO: document.getElementById("ID_EQUIPO").value,
+        ID_SERVICIO: document.getElementById("ID_SERVICIO").value,
+        ID_TIPOUS: document.getElementById("ID_TIPOUS").value
+      };
       }
     }).then((res) => {
       if (res.isConfirmed) {
-        console.log("Datos modificados:", res.value);
+      console.log("Datos modificados:", res.value);
 
-        // aquí podrías hacer un PUT a la API
-        // fetch("http://localhost:26001/api/solicitud/"+sol.id_solicitud, { ... })
+      // aquí podrías hacer un PUT a la API
+      // fetch("http://localhost:26001/api/solicitud/"+sol.id_solicitud, { ... })
 
-        Swal.fire("Guardado", "La solicitud se actualizó correctamente", "success");
+      Swal.fire("Guardado", "La solicitud se actualizó correctamente", "success");
       }
     });
   };
