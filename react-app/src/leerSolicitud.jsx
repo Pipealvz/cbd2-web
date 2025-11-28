@@ -94,7 +94,7 @@ function LeerSolicitud() {
 
       <div style="text-align:left; font-size:15px;">
 
-        <label><b>ID Factura</b></label>
+        <label><b> Facturado </b></label>
         <input class="swal2-input" value="${sol.ID_FACTURA}" disabled>
 
         <label><b>Persona</b></label>
