@@ -7,11 +7,13 @@ function LeerSolicitud() {
   const { auth, getAuthHeader } = useAuth();
   const [solicitudes, setSolicitudes] = useState([]);
   const [vista, setVista] = useState("card");
+  const [servicios, setServicios] = useState([]); // <-- agregar esto
 
   // 🔹 Definir rol (usuario o empleado)
   const rol = "empleado"; // <-- CAMBIA esto según login real
 
   useEffect(() => {
+    // Obtener solicitudes
     fetch(`http://localhost:26001/api/solicitud/user/${auth.user.ID_PERSONA}`, {
       headers: {
         ...getAuthHeader(),  // 👉 Enviamos Authorization: Bearer token
@@ -20,9 +22,37 @@ function LeerSolicitud() {
       .then((res) => res.json())
       .then((data) => { console.log("DATA RECIBIDA:", data); setSolicitudes(data) })
       .catch((err) => console.error("Error al obtener solicitudes:", err));
+
+    // Obtener servicios para el select
+    fetch("http://localhost:26001/api/servicio/all", {
+      headers: {
+        ...getAuthHeader(),
+      },
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        console.log("SERVICIOS RECIBIDOS:", data);
+        setServicios(Array.isArray(data) ? data : []);
+      })
+      .catch((err) => {
+        console.error("Error al obtener servicios:", err);
+        setServicios([]);
+      });
   }, []);
 
   const verDetalles = (sol) => {
+    // Construir opciones del select de servicios
+    const serviciosOptions = servicios.length
+      ? servicios
+          .map(
+            (sv) =>
+              `<option value="${sv.ID_SERVICIO}" ${
+                sv.ID_SERVICIO == sol.ID_SERVICIO ? "selected" : ""
+              }>${sv.NOMBRE_SERVICIO ?? sv.NOMBRE ?? "Servicio " + sv.ID_SERVICIO}</option>`
+          )
+          .join("")
+      : `<option value="${sol.ID_SERVICIO ?? ""}" selected>Servicio ${sol.ID_SERVICIO}</option>`;
+
     Swal.fire({
       title: `<strong>Solicitud #${sol.ID_SOLICITUD}</strong>`,
       width: "700px",
@@ -91,8 +121,10 @@ function LeerSolicitud() {
         <label><b>Fecha Creación</b></label>
         <input class="swal2-input" value="${sol.FECHA_CREACION}" disabled>
 
-        <label><b>ID Servicio</b></label>
-        <input id="ID_SERVICIO" class="swal2-input" value="${sol.ID_SERVICIO}">
+        <label><b>Servicio</b></label>
+        <select id="ID_SERVICIO" class="swal2-select">
+          ${serviciosOptions}
+        </select>
 
         <label><b>ID Tipo Servicio</b></label>
         <input id="ID_TIPOUS" class="swal2-input" value="${sol.ID_TIPOUS}">
