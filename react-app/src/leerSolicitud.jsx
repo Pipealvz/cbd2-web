@@ -12,7 +12,7 @@ function LeerSolicitud() {
   const rol = "empleado"; // <-- CAMBIA esto según login real
 
   useEffect(() => {
-    fetch("http://localhost:26001/api/solicitud/all", {
+    fetch(`http://localhost:26001/api/solicitud/user/${auth.user.ID_PERSONA}`, {
       headers: {
         ...getAuthHeader(),  // 👉 Enviamos Authorization: Bearer token
       },
