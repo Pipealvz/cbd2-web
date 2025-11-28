@@ -14,17 +14,30 @@ function LeerSolicitud() {
   useEffect(() => {
     fetch("http://localhost:26001/api/solicitud/all", {
       headers: {
-        ...getAuthHeader(),  // 👉 Enviamos Authorization: Bearer token
+        ...getAuthHeader(),
       },
     })
       .then((res) => res.json())
-      .then((data) => { console.log("DATA RECIBIDA:", data); setSolicitudes(data) })
+      .then((data) => {
+        console.log("DATA RECIBIDA:", data);
+        // Normalizar claves a las que espera el front (ID_SOMETHING)
+        const normalized = Array.isArray(data)
+          ? data.map((row) => {
+              const out = {};
+              Object.keys(row).forEach((k) => {
+                out[k.toUpperCase()] = row[k];
+              });
+              return out;
+            })
+          : [];
+        setSolicitudes(normalized);
+      })
       .catch((err) => console.error("Error al obtener solicitudes:", err));
   }, []);
 
   const verDetalles = (sol) => {
     Swal.fire({
-      title: `<strong>Solicitud #${sol.ID_SOLICITUD}</strong>`,
+      title: <strong>Solicitud #${sol.ID_SOLICITUD}</strong>,
       width: "700px",
       confirmButtonText: "Guardar",
       confirmButtonColor: "#0d6efd",

@@ -1,74 +1,59 @@
 const db = require('../config/db-oracle');
 
 exports.getAllUser = async (req, res) => {
-    try {
-        console.log('getAllUser req.user =', req.user); // <-- debug auth
-        const userId = req.user?.id;
   try {
-    // Validar que el middleware de auth envió el id del usuario
-    const userId = req.user?.id;
+    const userId = req.user?.id_persona;
+    if (!userId) return res.status(401).json({ error: "Usuario no autenticado" });
 
-    if (!userId) {
-      return res.status(401).json({ error: "Usuario no autenticado o token inválido." });
-    }
-
-        console.log('getAllUser userId =', userId); // <-- debug id recibido
-
-        const result = await db.execute(
-            `SELECT * FROM Solicitud WHERE usuario_id = :userId`,
-            { userId }
-        );
-    // Consulta que solo obtiene solicitudes del usuario logueado
     const result = await db.execute(
-      `SELECT * FROM Solicitud WHERE usuario_id = ?`,
-      [userId]
+      `SELECT * FROM Solicitud WHERE id_persona = :userId`,
+      { userId }
     );
 
-        console.log('getAllUser rows =', (result && result.rows) ? result.rows.length : 0); // <-- debug resultado
-
-        res.json(result.rows || []);
-    res.json(result.rows);
-
-    } catch (err) {
-        console.error(err);
-        res.status(500).json({ error: err.message });
-    }
+    res.json(result.rows || []); // si no hay datos, devuelve array vacío
   } catch (err) {
+    console.error(err);
     res.status(500).json({ error: err.message });
   }
 };
 
-// Obtener todas las solicitudes
+
+// ======================================================
+// OBTENER TODAS LAS SOLICITUDES
+// ======================================================
 exports.getAll = async (req, res) => {
   try {
     const result = await db.execute(`SELECT * FROM Solicitud`);
-    res.json(result.rows);
+    return res.json(result.rows);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    return res.status(500).json({ error: err.message });
   }
 };
 
-// Obtener solicitud por ID
+// ======================================================
+// OBTENER SOLICITUD POR ID
+// ======================================================
 exports.getById = async (req, res) => {
   try {
     const { id } = req.params;
 
-        const result = await db.execute(
-            `SELECT * FROM Solicitud WHERE id_solicitud = :id`,
-            { id }
-        );
+    const result = await db.execute(
+      `SELECT * FROM Solicitud WHERE id_solicitud = :id`,
+      { id }
+    );
 
-    res.json(result.rows[0] || {});
+    return res.json(result.rows[0] || null);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    return res.status(500).json({ error: err.message });
   }
 };
 
-// Crear nueva solicitud (normalizar fecha)
+// ======================================================
+// CREAR SOLICITUD
+// ======================================================
 exports.create = async (req, res) => {
-  const userId = req.user?.id_persona;
   try {
-    const {
+    let {
       id_solicitud,
       id_factura,
       id_persona,
@@ -82,27 +67,26 @@ exports.create = async (req, res) => {
       id_tipous
     } = req.body;
 
-    let fechaOracle = fecha_creacion || '';
-    if (fechaOracle.includes('.')) fechaOracle = fechaOracle.split('.')[0];
-    fechaOracle = fechaOracle.replace('Z', '');
-    if (fechaOracle.includes(' ') && !fechaOracle.includes('T')) {
-      fechaOracle = fechaOracle.replace(' ', 'T');
+    // Normalizar fecha
+    if (fecha_creacion) {
+      fecha_creacion = fecha_creacion.replace("Z", "").split(".")[0];
     }
 
-    if (!fechaOracle) fechaOracle = null; // <-- evitar TO_DATE('', ...)
-
-    await db.execute(
-      `
+    const sql = `
       INSERT INTO Solicitud (
         id_solicitud, id_factura, id_persona, id_persona_empleado, id_estado,
         observaciones, id_garantia, id_equipo, fecha_creacion, id_servicio, id_tipous
-      ) VALUES (
+      )
+      VALUES (
         :id_solicitud, :id_factura, :id_persona, :id_persona_empleado, :id_estado,
         :observaciones, :id_garantia, :id_equipo,
-        ${'${fechaOracle ? "TO_DATE(:fecha_creacion, \'YYYY-MM-DD\"T\"HH24:MI:SS\')" : "NULL"}'}
-        , :id_servicio, :id_tipous
+        ${fecha_creacion ? "TO_DATE(:fecha_creacion, 'YYYY-MM-DD\"T\"HH24:MI:SS')" : "NULL"},
+        :id_servicio, :id_tipous
       )
-      `,
+    `;
+
+    const result = await db.execute(
+      sql,
       {
         id_solicitud,
         id_factura,
@@ -112,27 +96,29 @@ exports.create = async (req, res) => {
         observaciones,
         id_garantia,
         id_equipo,
-        fecha_creacion: fechaOracle,
+        fecha_creacion,
         id_servicio,
         id_tipous
       },
       { autoCommit: true }
     );
 
-    res.status(201).json({ message: 'Solicitud creada correctamente' });
+    return res.status(201).json({ message: 'Solicitud creada correctamente' });
+
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: err.message });
+    console.error("ERROR create:", err);
+    return res.status(500).json({ error: err.message });
   }
 };
 
-
-// Actualizar solicitud
+// ======================================================
+// ACTUALIZAR SOLICITUD
+// ======================================================
 exports.update = async (req, res) => {
   try {
     const { id } = req.params;
 
-    const {
+    let {
       id_factura,
       id_persona,
       id_persona_empleado,
@@ -145,9 +131,13 @@ exports.update = async (req, res) => {
       id_tipous
     } = req.body;
 
+    if (fecha_creacion) {
+      fecha_creacion = fecha_creacion.replace("Z", "").split(".")[0];
+    }
+
     await db.execute(
-      `UPDATE Solicitud
-       SET
+      `
+      UPDATE Solicitud SET
         id_factura = :id_factura,
         id_persona = :id_persona,
         id_persona_empleado = :id_persona_empleado,
@@ -155,45 +145,49 @@ exports.update = async (req, res) => {
         observaciones = :observaciones,
         id_garantia = :id_garantia,
         id_equipo = :id_equipo,
-        fecha_creacion = :fecha_creacion,
+        fecha_creacion = ${fecha_creacion ? "TO_DATE(:fecha_creacion, 'YYYY-MM-DD\"T\"HH24:MI:SS')" : "NULL"},
         id_servicio = :id_servicio,
         id_tipous = :id_tipous
-       WHERE id_solicitud = :id`,
-            {
-                id_factura,
-                id_persona,
-                id_persona_empleado,
-                id_estado,
-                observaciones,
-                id_garantia,
-                id_equipo,
-                fecha_creacion,
-                id_servicio,
-                id_tipous,
-                id
-            },
-            { autoCommit: true }
-        );
+      WHERE id_solicitud = :id
+      `,
+      {
+        id_factura,
+        id_persona,
+        id_persona_empleado,
+        id_estado,
+        observaciones,
+        id_garantia,
+        id_equipo,
+        fecha_creacion,
+        id_servicio,
+        id_tipous,
+        id
+      },
+      { autoCommit: true }
+    );
 
-    res.json({ message: 'Solicitud actualizada correctamente' });
+    return res.json({ message: 'Solicitud actualizada correctamente' });
+
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    return res.status(500).json({ error: err.message });
   }
 };
 
-// Eliminar solicitud
+// ======================================================
+// ELIMINAR SOLICITUD
+// ======================================================
 exports.remove = async (req, res) => {
   try {
     const { id } = req.params;
 
-        await db.execute(
-            `DELETE FROM Solicitud WHERE id_solicitud = :id`,
-            { id },
-            { autoCommit: true }
-        );
+    await db.execute(
+      `DELETE FROM Solicitud WHERE id_solicitud = :id`,
+      { id },
+      { autoCommit: true }
+    );
 
-    res.json({ message: 'Solicitud eliminada correctamente' });
+    return res.json({ message: 'Solicitud eliminada correctamente' });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    return res.status(500).json({ error: err.message });
   }
 };
