@@ -13,24 +13,14 @@ function LeerSolicitud() {
   const rol = "empleado"; // <-- CAMBIA esto según login real
 
   useEffect(() => {
-    // Obtener solicitudes del usuario logueado
-    const userId = auth?.user?.ID_PERSONA;
-    
-    if (!userId) {
-      console.warn("Usuario no autenticado");
-      return;
-    }
-
+    // Obtener solicitudes
     fetch(`http://localhost:26001/api/solicitud/user/${auth.user.ID_PERSONA}`, {
       headers: {
-        ...getAuthHeader(),
+        ...getAuthHeader(),  // 👉 Enviamos Authorization: Bearer token
       },
     })
       .then((res) => res.json())
-      .then((data) => {
-        //console.log("DATA RECIBIDA:", data);
-        setSolicitudes(Array.isArray(data) ? data : []);
-      })
+      .then((data) => { console.log("DATA RECIBIDA:", data); setSolicitudes(data) })
       .catch((err) => console.error("Error al obtener solicitudes:", err));
 
     // Obtener servicios para el select
@@ -48,7 +38,7 @@ function LeerSolicitud() {
         console.error("Error al obtener servicios:", err);
         setServicios([]);
       });
-  }, [auth]);
+  }, []);
 
   const verDetalles = (sol) => {
     // Construir opciones del select de servicios
@@ -108,7 +98,7 @@ function LeerSolicitud() {
         <input class="swal2-input" value="${sol.ID_FACTURA}" disabled>
 
         <label><b>Persona</b></label>
-        <input class="swal2-input" value="${sol.ID_PERSONA}" disabled>
+        <input class="swal2-input" value="${auth?.user?.correo || sol.ID_PERSONA}" disabled>
 
         <label><b>Empleado Responsable</b></label>
         <input id="ID_PERSONA_EMPLEADO" class="swal2-input" value="${sol.ID_PERSONA_EMPLEADO}" ${rol === "usuario" ? "disabled" : ""}>
@@ -244,5 +234,3 @@ function LeerSolicitud() {
 }
 
 export default LeerSolicitud;
-////sdasadasddassda
-console.log("DATA RECIBIDA:", data);
