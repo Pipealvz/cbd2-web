@@ -8,6 +8,10 @@ function LeerSolicitud() {
   const [solicitudes, setSolicitudes] = useState([]);
   const [vista, setVista] = useState("card");
   const [servicios, setServicios] = useState([]); // <-- agregar esto
+  const [estados, setEstados] = useState([
+    { id: 1, nombre: "Completado" },
+    { id: 0, nombre: "No completado" }
+  ]); // puedes reemplazar por fetch si tienes endpoint
 
   // 🔹 Definir rol (usuario o empleado)
   const rol = "empleado"; // <-- CAMBIA esto según login real
@@ -53,6 +57,14 @@ function LeerSolicitud() {
           .join("")
       : `<option value="${sol.ID_SERVICIO ?? ""}" selected>Servicio ${sol.ID_SERVICIO}</option>`;
 
+    // Construir opciones del select de estados (estado-solicitud)
+    const estadosOptions = (estados || [])
+      .map(
+        (st) =>
+          `<option value="${st.id}" ${st.id == sol.ID_ESTADO ? "selected" : ""}>${st.nombre}</option>`
+      )
+      .join("");
+    
     Swal.fire({
       title: `<strong>Solicitud #${sol.ID_SOLICITUD}</strong>`,
       width: "700px",
@@ -94,7 +106,7 @@ function LeerSolicitud() {
 
       <div style="text-align:left; font-size:15px;">
 
-        <label><b>ID Factura</b></label>
+        <label><b>Facturado</b></label>
         <input class="swal2-input" value="${sol.ID_FACTURA}" disabled>
 
         <label><b>Persona (ID)</b></label>
@@ -108,8 +120,7 @@ function LeerSolicitud() {
 
         <label><b>Estado</b></label>
         <select id="ID_ESTADO" class="swal2-select" ${rol === "usuario" ? "disabled" : ""}>
-        <option value="1" ${sol.ID_ESTADO == 1 ? "selected" : ""}>Completado</option>
-        <option value="0" ${sol.ID_ESTADO == 0 ? "selected" : ""}>No completado</option>
+          ${estadosOptions}
         </select>
 
         <label><b>OBSERVACIONES</b></label>
