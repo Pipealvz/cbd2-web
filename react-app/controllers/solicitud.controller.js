@@ -119,14 +119,10 @@ exports.update = async (req, res) => {
     const { id } = req.params;
 
     let {
-      id_factura,
-      id_persona,
       id_persona_empleado,
       id_estado,
       observaciones,
-      id_garantia,
       id_equipo,
-      fecha_creacion,
       id_servicio,
       id_tipous
     } = req.body;

@@ -8,6 +8,10 @@ function LeerSolicitud() {
   const [solicitudes, setSolicitudes] = useState([]);
   const [vista, setVista] = useState("card");
   const [servicios, setServicios] = useState([]); // <-- agregar esto
+  const [estados, setEstados] = useState([
+    { id: 1, nombre: "Completado" },
+    { id: 0, nombre: "No completado" }
+  ]); // puedes reemplazar por fetch si tienes endpoint
 
   // 🔹 Definir rol (usuario o empleado)
   const rol = "empleado"; // <-- CAMBIA esto según login real
@@ -40,6 +44,36 @@ function LeerSolicitud() {
       });
   }, []);
 
+  const eliminarSolicitud = (id) => {
+    Swal.fire({
+      title: '¿Estás seguro?',
+      text: 'Esta acción eliminará la solicitud de forma permanente.',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#d33',
+      cancelButtonColor: '#3085d6',
+      confirmButtonText: 'Sí, eliminar',
+      cancelButtonText: 'Cancelar',
+    }).then((result) => {
+      if (result.isConfirmed) {
+        fetch(`http://localhost:26001/api/solicitud/${id}`, {
+          method: 'DELETE',
+          headers: {
+            ...getAuthHeader(),
+          },
+        })
+          .then((res) => {
+            if (!res.ok) throw new Error('Error al eliminar');
+            setSolicitudes((prev) => prev.filter((s) => s.ID_SOLICITUD !== id));
+            Swal.fire('Eliminado', 'La solicitud ha sido eliminada.', 'success');
+          })
+          .catch(() => {
+            Swal.fire('Error', 'No se pudo eliminar la solicitud.', 'error');
+          });
+      }
+    });
+  };
+
   const verDetalles = (sol) => {
     // Construir opciones del select de servicios
     const serviciosOptions = servicios.length
@@ -53,6 +87,14 @@ function LeerSolicitud() {
           .join("")
       : `<option value="${sol.ID_SERVICIO ?? ""}" selected>Servicio ${sol.ID_SERVICIO}</option>`;
 
+    // Construir opciones del select de estados (estado-solicitud)
+    const estadosOptions = (estados || [])
+      .map(
+        (st) =>
+          `<option value="${st.id}" ${st.id == sol.ID_ESTADO ? "selected" : ""}>${st.nombre}</option>`
+      )
+      .join("");
+    
     Swal.fire({
       title: `<strong>Solicitud #${sol.ID_SOLICITUD}</strong>`,
       width: "700px",
@@ -94,7 +136,7 @@ function LeerSolicitud() {
 
       <div style="text-align:left; font-size:15px;">
 
-        <label><b> Facturado </b></label>
+        <label><b>Facturado</b></label>
         <input class="swal2-input" value="${sol.ID_FACTURA}" disabled>
 
         <label><b>Persona</b></label>
@@ -105,8 +147,7 @@ function LeerSolicitud() {
 
         <label><b>Estado</b></label>
         <select id="ID_ESTADO" class="swal2-select" ${rol === "usuario" ? "disabled" : ""}>
-        <option value="1" ${sol.ID_ESTADO == 1 ? "selected" : ""}>Completado</option>
-        <option value="0" ${sol.ID_ESTADO == 0 ? "selected" : ""}>No completado</option>
+          ${estadosOptions}
         </select>
 
         <label><b>OBSERVACIONES</b></label>
@@ -191,10 +232,8 @@ function LeerSolicitud() {
               <div
                 className="card shadow-sm border-0"
                 style={{ borderRadius: "12px" }}
-                role="button"
-                onClick={() => verDetalles(s)}
               >
-                <div className="card-body">
+                <div className="card-body" role="button" onClick={() => verDetalles(s)}>
                   <h5 className="card-title text-primary fw-bold">
                     Solicitud #{s.ID_SOLICITUD}
                   </h5>
@@ -202,6 +241,11 @@ function LeerSolicitud() {
                   <span className="badge bg-secondary">
                     Estado: {s.ID_ESTADO}
                   </span>
+                </div>
+                <div className="card-footer bg-transparent border-0 d-flex justify-content-end">
+                  <button className="btn btn-danger btn-sm" onClick={() => eliminarSolicitud(s.ID_SOLICITUD)}>
+                    Eliminar
+                  </button>
                 </div>
               </div>
             </div>
@@ -213,18 +257,21 @@ function LeerSolicitud() {
             <li
               key={s.ID_SOLICITUD}
               className="list-group-item d-flex justify-content-between align-items-start"
-              role="button"
-              onClick={() => verDetalles(s)}
             >
-              <div>
+              <div role="button" onClick={() => verDetalles(s)}>
                 <h6 className="fw-bold text-primary">
                   Solicitud #{s.ID_SOLICITUD}
                 </h6>
                 <p className="mb-1">Factura: {s.ID_FACTURA}</p>
               </div>
-              <span className="badge bg-secondary">
-                Estado {s.ID_ESTADO}
-              </span>
+              <div className="d-flex flex-column align-items-end">
+                <span className="badge bg-secondary mb-2">
+                  Estado {s.ID_ESTADO}
+                </span>
+                <button className="btn btn-danger btn-sm" onClick={() => eliminarSolicitud(s.ID_SOLICITUD)}>
+                  Eliminar
+                </button>
+              </div>
             </li>
           ))}
         </ul>
