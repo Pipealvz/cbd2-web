@@ -109,11 +109,8 @@ function LeerSolicitud() {
         <label><b>Facturado</b></label>
         <input class="swal2-input" value="${sol.ID_FACTURA}" disabled>
 
-        <label><b>Persona (ID)</b></label>
-        <input class="swal2-input" value="${sol.ID_PERSONA}" disabled>
-
-        <label><b>Correo del Usuario</b></label>
-        <input class="swal2-input" value="${auth?.user?.correo || 'No disponible'}" disabled>
+        <label><b>Persona</b></label>
+        <input class="swal2-input" value="${auth?.user?.correo || sol.ID_PERSONA}" disabled>
 
         <label><b>Empleado Responsable</b></label>
         <input id="ID_PERSONA_EMPLEADO" class="swal2-input" value="${sol.ID_PERSONA_EMPLEADO}" ${rol === "usuario" ? "disabled" : ""}>
