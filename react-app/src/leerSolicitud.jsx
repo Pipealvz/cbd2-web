@@ -24,7 +24,7 @@ function LeerSolicitud() {
       .catch((err) => console.error("Error al obtener solicitudes:", err));
 
     // Obtener servicios para el select
-    fetch("http://localhost:26001/api/servicio/servicios", {
+    fetch("http://localhost:26001/api/servicio", {
       headers: {
         ...getAuthHeader(),
       },
