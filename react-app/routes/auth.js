@@ -2,6 +2,9 @@ const express = require('express');
 const router = express.Router();
 const db = require('../config/db-oracle'); // tu conexión Oracle
 const jwt = require('jsonwebtoken');
+const cors = require('cors');
+
+router.use(cors());
 
 const JWT_SECRET = process.env.JWT_SECRET || 'esto_es_una_clave_secreta_muy_segura';
 

@@ -12,14 +12,15 @@ function LeerSolicitud() {
   const rol = "empleado"; // <-- CAMBIA esto según login real
 
   useEffect(() => {
-    fetch("http://localhost:26001/api/solicitud/all", {
+    //console.log("auth en leerSolicitud:", auth);
+    fetch(`http://localhost:26001/api/solicitud/user/${auth?.user?.id_persona}`, {
       headers: {
         ...getAuthHeader(),
       },
     })
       .then((res) => res.json())
       .then((data) => {
-        console.log("DATA RECIBIDA:", data);
+        //console.log("DATA RECIBIDA:", data);
         // Normalizar claves a las que espera el front (ID_SOMETHING)
         const normalized = Array.isArray(data)
           ? data.map((row) => {
@@ -30,10 +31,16 @@ function LeerSolicitud() {
               return out;
             })
           : [];
-        setSolicitudes(normalized);
+        // Filtrar por usuario logueado
+        const userId = auth?.user?.id_persona;
+        //console.log("userId para filtrar:", userId);
+        const filtered = userId
+          ? normalized.filter(s => s.ID_PERSONA === userId)
+          : normalized;
+        setSolicitudes(filtered);
       })
       .catch((err) => console.error("Error al obtener solicitudes:", err));
-  }, []);
+  }, [auth]);
 
   const verDetalles = (sol) => {
     Swal.fire({

@@ -1,15 +1,19 @@
 import Swal from 'sweetalert2'
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { useState, useEffect } from 'react';
+import { useAuth } from './auth/AuthProvider';
 import { v4 as uuidv4 } from 'uuid';
 import axios from 'axios';
 
 
+
 function RequestForm() {
+  const { auth } = useAuth();
+  const userId = auth?.user?.id_persona;
 
   const [formData, setFormData] = useState({
     id_solicitud: uuidv4(),
-    id_persona: 1,
+    id_persona: userId || 0,
     id_estado: 1,
     observaciones: '',
     id_equipo: 0,
@@ -18,7 +22,7 @@ function RequestForm() {
     id_tipous: 0
   });
 
-  console.log('Formulario inicializado con ID:', formData.id_solicitud);
+  //console.log('Formulario inicializado con ID:', formData.id_solicitud);
 
   const [errors, setErrors] = useState({});
   const [equipos, setEquipos] = useState([]);
@@ -29,8 +33,11 @@ function RequestForm() {
     // Obtener datos de la API
     const fetchData = async () => {
       try {
-        const [equiposRes, serviciosRes, tipoUsRes] = await Promise.all([
-          axios.get('http://localhost:26001/api/equipo'),
+        let equiposRes = { data: [] };
+        if (userId) {
+          equiposRes = await axios.get(`http://localhost:26001/api/equipo/${userId}`);
+        }
+        const [serviciosRes, tipoUsRes] = await Promise.all([
           axios.get('http://localhost:26001/api/servicio'),
           axios.get('http://localhost:26001/api/tipo-usuario')
         ]);
@@ -42,7 +49,7 @@ function RequestForm() {
       }
     };
     fetchData();
-  }, []);
+  }, [userId]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -103,7 +110,7 @@ function RequestForm() {
     setFormData(prev => ({
       ...prev,
       id_solicitud: uuidv4(),
-      id_persona: 1,
+      id_persona: userId || '',
       id_estado: 1,
       observaciones: '',
       id_equipo: 0,
@@ -142,9 +149,13 @@ function RequestForm() {
                         className={`form-select shadow-sm ${errors.id_equipo ? 'is-invalid' : ''}`}
                       >
                         <option value="">Seleccione un equipo</option>
-                        {equipos.map(eq => (
-                          <option key={eq.ID_EQUIPO} value={eq.ID_EQUIPO}>{eq.TIPO_EQ} - {eq.MARCA_EQ}</option>
-                        ))}
+                        {equipos.length === 0 ? (
+                          <option value="" disabled>No hay elementos</option>
+                        ) : (
+                          equipos.map(eq => (
+                            <option key={eq.ID_EQUIPO} value={eq.ID_EQUIPO}>{eq.TIPO_EQ} - {eq.MARCA_EQ}</option>
+                          ))
+                        )}
                       </select>
                       {errors.id_equipo && <div className="invalid-feedback">{errors.id_equipo}</div>}
                     </div>

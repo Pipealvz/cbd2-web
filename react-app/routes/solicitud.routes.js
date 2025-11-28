@@ -9,6 +9,6 @@ router.get('/:id', solicitudController.getById);
 router.post('/', solicitudController.create);
 router.put('/:id', solicitudController.update);
 router.delete('/:id', solicitudController.remove);
-router.get('/user', verifyTokenMiddleware, solicitudController.getAllUser);
+router.get('/user/:id', verifyTokenMiddleware, solicitudController.getAllUser);
 
 module.exports = router;

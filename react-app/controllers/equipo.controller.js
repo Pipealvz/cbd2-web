@@ -10,17 +10,17 @@ exports.getAll = async (req, res) => {
   }
 };
 
-// Obtener equipo por ID
+// Obtener equipos por id_persona
 exports.getById = async (req, res) => {
   try {
     const { id } = req.params;
 
     const result = await db.execute(
-      `SELECT * FROM Equipo WHERE id_equipo = :id`,
+      `SELECT * FROM Equipo WHERE id_persona = :id`,
       [id]
     );
 
-    res.json(result.rows[0] || {});
+    res.json(result.rows || []);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
