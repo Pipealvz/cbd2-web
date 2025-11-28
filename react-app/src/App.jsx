@@ -1,4 +1,4 @@
-import { Routes, Route, useNavigate, useLocation } from 'react-router-dom';
+import { Routes, Route, useNavigate } from 'react-router-dom';
 import RequestForm from './request-form';
 import Navbar from './navbar';
 import './App.css';
@@ -13,11 +13,11 @@ function App() {
     const navigate = useNavigate();
     return (
         <AuthProvider>
-            <div className="app-wrapper">
-                {useLocation().pathname !== '/login' && <Navbar onWelcome={() => navigate('/')} onLogin={() => navigate('/login')} />}
-                <Routes>
-                    <Route path="/" element={
-                        <ProtectedRoute>
+            <Navbar />
+            <Routes>
+                <Route path="/" element={
+                    <ProtectedRoute>
+                        <div className="app-wrapper">
                             <div className="hero-fluid">
                                 <div className="hero-content">
                                     <h1 className="hero-title">
@@ -60,14 +60,13 @@ function App() {
                                     </button>
                                 </div>
                             </div>
-                        </ProtectedRoute>
-                    } />
-                    <Route path="/solicitud" element={<ProtectedRoute><RequestForm /></ProtectedRoute>} />
-                    <Route path="/solicitudes" element={<ProtectedRoute><LeerSolicitud /></ProtectedRoute>} />
-                    <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
-
-                </Routes>
-            </div>
+                        </div>
+                    </ProtectedRoute>
+                } />
+                <Route path="/solicitud" element={<ProtectedRoute><RequestForm /></ProtectedRoute>} />
+                <Route path="/solicitudes" element={<ProtectedRoute><LeerSolicitud /></ProtectedRoute>} />
+                <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
+            </Routes>
         </AuthProvider>
     );
 }

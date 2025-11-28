@@ -1,5 +1,27 @@
 const db = require('../config/db-oracle');
 
+exports.getAllUser = async (req, res) => {
+    try {
+        // Validar que el middleware de auth envió el id del usuario
+        const userId = req.user?.id;
+
+        if (!userId) {
+            return res.status(401).json({ error: "Usuario no autenticado o token inválido." });
+        }
+
+        // Consulta que solo obtiene solicitudes del usuario logueado
+        const result = await db.execute(
+            `SELECT * FROM Solicitud WHERE usuario_id = ?`,
+            [userId]
+        );
+
+        res.json(result.rows);
+
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+};
+
 // Obtener todas las solicitudes
 exports.getAll = async (req, res) => {
     try {

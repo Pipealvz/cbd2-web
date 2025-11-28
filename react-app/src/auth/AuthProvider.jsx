@@ -1,14 +1,5 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
 
-/**
- * AuthProvider
- * - Guarda el objeto auth en sessionStorage bajo la key "auth".
- * - login(credentials) -> POST a http://localhost:26001/login
- *   Espera respuesta JSON con al menos { user: {...}, token: "..." }.
- * - logout() -> limpia sessionStorage y el estado
- * - getAuthHeader() -> { Authorization: 'Bearer ...' } si hay token
- */
-
 const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
@@ -20,23 +11,32 @@ export function AuthProvider({ children }) {
       return null;
     }
   });
+
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  // Persistir sessionStorage cuando cambie auth
+  // 🔥 El ÚNICO logout válido
+  const logout = () => {
+    setAuth(null);
+    setError(null);
+    setLoading(false);
+    sessionStorage.removeItem("auth");
+  };
+
+  // Persistir sessionStorage
   useEffect(() => {
-    try {
-      if (auth) sessionStorage.setItem("auth", JSON.stringify(auth));
-      else sessionStorage.removeItem("auth");
-    } catch (e) {
-      // ignore
+    if (auth) {
+      sessionStorage.setItem("auth", JSON.stringify(auth));
+    } else {
+      sessionStorage.removeItem("auth");
     }
   }, [auth]);
 
-  // login: POST a la API
+  // Login
   async function login(credentials) {
     setLoading(true);
     setError(null);
+
     try {
       const res = await fetch("http://localhost:26001/login", {
         method: "POST",
@@ -45,52 +45,44 @@ export function AuthProvider({ children }) {
       });
 
       if (!res.ok) {
-        // tratar posible JSON de error
         let msg = `Error ${res.status}`;
         try {
           const j = await res.json();
           msg = j.message || JSON.stringify(j);
         } catch (e) {
-          try {
-            msg = await res.text();
-          } catch (e2) {}
+          msg = await res.text();
         }
         throw new Error(msg || "Error en inicio de sesión");
       }
 
       const data = await res.json();
+
       if (!data || !data.token) {
         throw new Error("La respuesta del servidor no contiene 'token'.");
       }
 
-      setAuth(data); // guarda user+token tal cual venga
+      setAuth(data); // Guarda user + token
       return data;
+
     } catch (err) {
       setError(err.message || "Error desconocido");
       throw err;
+
     } finally {
       setLoading(false);
     }
   }
 
-  function logout() {
-    setAuth(null);
-    setError(null);
-    setLoading(false);
-    try {
-      sessionStorage.removeItem("auth");
-    } catch (e) {
-      // ignore
-    }
-  }
-
+  // Header autorizado
   function getAuthHeader() {
     if (!auth || !auth.token) return {};
     return { Authorization: `Bearer ${auth.token}` };
   }
 
   return (
-    <AuthContext.Provider value={{ auth, login, logout, loading, error, getAuthHeader }}>
+    <AuthContext.Provider
+      value={{ auth, login, logout, loading, error, getAuthHeader }}
+    >
       {children}
     </AuthContext.Provider>
   );

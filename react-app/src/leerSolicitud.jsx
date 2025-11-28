@@ -1,8 +1,10 @@
 import React, { useEffect, useState } from "react";
 import "bootstrap/dist/css/bootstrap.min.css";
 import Swal from "sweetalert2";
+import { useAuth } from "./auth/AuthProvider";
 
 function LeerSolicitud() {
+  const { auth, getAuthHeader } = useAuth();
   const [solicitudes, setSolicitudes] = useState([]);
   const [vista, setVista] = useState("card");
 
@@ -10,9 +12,13 @@ function LeerSolicitud() {
   const rol = "empleado"; // <-- CAMBIA esto según login real
 
   useEffect(() => {
-    fetch("http://localhost:26001/api/solicitud")
+    fetch("http://localhost:26001/api/solicitud/all", {
+      headers: {
+        ...getAuthHeader(),  // 👉 Enviamos Authorization: Bearer token
+      },
+    })
       .then((res) => res.json())
-      .then((data) => setSolicitudes(data))
+      .then((data) => { console.log("DATA RECIBIDA:", data); setSolicitudes(data) })
       .catch((err) => console.error("Error al obtener solicitudes:", err));
   }, []);
 
@@ -115,10 +121,16 @@ function LeerSolicitud() {
         </button>
       </div>
 
-      {vista === "card" ? (
+      {!Array.isArray(solicitudes) || solicitudes.length === 0 ? (
+        <div className="text-center my-5">
+          <span className="display-6 text-muted fw-semibold">
+            No hay solicitudes registradas
+          </span>
+        </div>
+      ) : vista === "card" ? (
         <div className="row">
           {solicitudes.map((s) => (
-            <div className="col-md-4 mb-4" key={s.ID_SOLCICITUD}>
+            <div className="col-md-4 mb-4" key={s.ID_SOLICITUD}>
               <div
                 className="card shadow-sm border-0"
                 style={{ borderRadius: "12px" }}
@@ -126,9 +138,13 @@ function LeerSolicitud() {
                 onClick={() => verDetalles(s)}
               >
                 <div className="card-body">
-                  <h5 className="card-title text-primary fw-bold">Solicitud #{s.ID_SOLICITUD}</h5>
+                  <h5 className="card-title text-primary fw-bold">
+                    Solicitud #{s.ID_SOLICITUD}
+                  </h5>
                   <p className="card-text">Factura: {s.ID_FACTURA}</p>
-                  <span className="badge bg-secondary">Estado: {s.ID_ESTADO}</span>
+                  <span className="badge bg-secondary">
+                    Estado: {s.ID_ESTADO}
+                  </span>
                 </div>
               </div>
             </div>
@@ -144,10 +160,14 @@ function LeerSolicitud() {
               onClick={() => verDetalles(s)}
             >
               <div>
-                <h6 className="fw-bold text-primary">Solicitud #{s.ID_SOLICITUD}</h6>
+                <h6 className="fw-bold text-primary">
+                  Solicitud #{s.ID_SOLICITUD}
+                </h6>
                 <p className="mb-1">Factura: {s.ID_FACTURA}</p>
               </div>
-              <span className="badge bg-secondary">Estado {s.ID_ESTADO}</span>
+              <span className="badge bg-secondary">
+                Estado {s.ID_ESTADO}
+              </span>
             </li>
           ))}
         </ul>
