@@ -19,7 +19,10 @@
   },
   "homepage": "https://github.com/Pipealvz/cbd2-web#readme",
   "dependencies": {
+    "bcryptjs": "^3.0.3",
     "dotenv": "^17.2.3",
-    "oracledb": "^6.10.0"
+    "jsonwebtoken": "^9.0.2",
+    "oracledb": "^6.10.0",
+    "react-router-dom": "^7.9.6"
   }
 }

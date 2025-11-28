@@ -1,6 +1,7 @@
 const express = require('express');
 const app = express();
 require('dotenv').config();
+const authRouter = require('./routes/auth');
 
 const db = require('./config/db-oracle');
 const routes = require('./routes/index');
@@ -8,6 +9,7 @@ const port = 26001;
 
 app.use(express.json());
 
+app.use('/', authRouter);
 app.use('/api', routes);
 
 (async () => {

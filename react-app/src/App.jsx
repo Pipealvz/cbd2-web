@@ -3,61 +3,66 @@ import RequestForm from './request-form';
 import Navbar from './navbar';
 import './App.css';
 import LeerSolicitud from './leerSolicitud';
+import { AuthProvider } from './auth/AuthProvider.jsx';
+import Login from './Login.jsx';
 
 function App() {
     const navigate = useNavigate();
     return (
-        <div className="app-wrapper">
-            <Navbar onCreateRequest={() => navigate('/solicitud')} />
-            <Routes>
-                <Route path="/" element={
-                    <div className="hero-section">
-                        <div className="hero-content">
-                            <h1 className="hero-title">
-                                Bienvenidos a CBD2
-                            </h1>
-                            <p className="hero-subtitle">
-                                Soluciones tecnológicas profesionales
-                            </p>
-                            
-                            <div className="services-grid">
-                                <div className="service-card">
-                                    <div className="service-icon">⚙️</div>
-                                    <h3>Mantenimiento</h3>
-                                    <p>Limpieza, actualización y optimización de equipos</p>
-                                </div>
-                                
-                                <div className="service-card">
-                                    <div className="service-icon">🔧</div>
-                                    <h3>Reparación</h3>
-                                    <p>Diagnóstico y reparación de portátiles y servidores</p>
-                                </div>
-                                
-                                <div className="service-card">
-                                    <div className="service-icon">🛡️</div>
-                                    <h3>Soporte Técnico</h3>
-                                    <p>Asistencia especializada y soporte continuo</p>
-                                </div>
-                            </div>
+        <AuthProvider>
+            <div className="app-wrapper">
+                <Navbar onWelcome={() => navigate('/')} onLogin={() => navigate('/login')} />
+                <Routes>
+                    <Route path="/" element={
+                        <div className="hero-section">
+                            <div className="hero-content">
+                                <h1 className="hero-title">
+                                    Bienvenidos a CBD2
+                                </h1>
+                                <p className="hero-subtitle">
+                                    Soluciones tecnológicas profesionales
+                                </p>
 
-                            <div className="hero-description">
-                                <p>Ofrecemos servicios profesionales de mantenimiento y reparación de portátiles y servidores. Con diagnóstico experto, actualización de componentes y soporte técnico especializado.</p>
-                                <p className="highlight">Tu tecnología en las mejores manos.</p>
-                            </div>
+                                <div className="services-grid">
+                                    <div className="service-card">
+                                        <div className="service-icon">⚙️</div>
+                                        <h3>Mantenimiento</h3>
+                                        <p>Limpieza, actualización y optimización de equipos</p>
+                                    </div>
 
-                            <button 
-                                className="cta-button"
-                                onClick={() => navigate('/solicitud')}
-                            >
-                                Solicitar Servicio
-                            </button>
+                                    <div className="service-card">
+                                        <div className="service-icon">🔧</div>
+                                        <h3>Reparación</h3>
+                                        <p>Diagnóstico y reparación de portátiles y servidores</p>
+                                    </div>
+
+                                    <div className="service-card">
+                                        <div className="service-icon">🛡️</div>
+                                        <h3>Soporte Técnico</h3>
+                                        <p>Asistencia especializada y soporte continuo</p>
+                                    </div>
+                                </div>
+
+                                <div className="hero-description">
+                                    <p>Ofrecemos servicios profesionales de mantenimiento y reparación de portátiles y servidores. Con diagnóstico experto, actualización de componentes y soporte técnico especializado.</p>
+                                    <p className="highlight">Tu tecnología en las mejores manos.</p>
+                                </div>
+
+                                <button
+                                    className="cta-button"
+                                    onClick={() => navigate('/solicitud')}
+                                >
+                                    Solicitar Servicio
+                                </button>
+                            </div>
                         </div>
-                    </div>
-                } />
-                <Route path="/solicitud" element={<RequestForm />} />
-                <Route path="/solicitudes" element={<LeerSolicitud />} />
-            </Routes>
-        </div>
+                    } />
+                    <Route path="/solicitud" element={<RequestForm />} />
+                    <Route path="/solicitudes" element={<LeerSolicitud />} />
+                    <Route path="/login" element={<Login />} />
+                </Routes>
+            </div>
+        </AuthProvider>
     );
 }
 
