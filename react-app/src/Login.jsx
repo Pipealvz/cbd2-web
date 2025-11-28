@@ -28,7 +28,7 @@ export default function Login() {
         correo: form.correo,
         contrasena: form.contrasena,
       });
-      
+      navigate("/");
       // AuthProvider se encarga de guardar token en sessionStorage
     } catch (err) {
       console.error("Error en login:", err);
@@ -36,7 +36,7 @@ export default function Login() {
   };
 
   return (
-    <div className="d-flex align-items-center justify-content-center" style={{ minHeight: "60vh" }}>
+    <div className="vh-100 d-flex align-items-center justify-content-center" style={{ minHeight: "60vh" }}>
       <div className="card shadow-sm" style={{ width: 420 }}>
         <div className="card-body">
           <h4 className="card-title text-primary mb-2">Iniciar sesión</h4>
