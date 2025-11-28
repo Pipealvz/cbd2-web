@@ -52,7 +52,10 @@ function LeerSolicitud() {
           <input id="ID_PERSONA_EMPLEADO" class="swal2-input" value="${sol.ID_PERSONA_EMPLEADO}" ${rol === "usuario" ? "disabled" : ""}>
 
           <label><b>Estado</b></label>
-          <input id="ID_ESTADO" class="swal2-input" type="number" value="${sol.ID_ESTADO}" ${rol === "usuario" ? "disabled" : ""}>
+          <select id="ID_ESTADO" class="swal2-select" ${rol === "usuario" ? "disabled" : ""}>
+            <option value="1" ${sol.ID_ESTADO == 1 ? "selected" : ""}>Completado</option>
+            <option value="0" ${sol.ID_ESTADO == 0 ? "selected" : ""}>No completado</option>
+          </select>
 
           <label><b>OBSERVACIONES</b></label>
           <textarea id="OBSERVACIONES" class="swal2-textarea">${sol.OBSERVACIONES ?? ""}</textarea>
