@@ -1,10 +1,17 @@
-import { Routes, Route, useNavigate } from 'react-router-dom';
+import { Routes, Route, useNavigate, useLocation } from 'react-router-dom';
 import RequestForm from './request-form';
 import Navbar from './navbar';
 import './App.css';
 import LeerSolicitud from './leerSolicitud';
 import { AuthProvider } from './auth/AuthProvider.jsx';
 import Login from './Login.jsx';
+import RegisterClient from './RegisterClient.jsx';
+import FormEquipo from './form-equipo.jsx';
+import MarcaView from './MarcaView.jsx';
+import FormMarca from './form-marca.jsx';
+import TipoRepView from './TipoRepView.jsx';
+import FormTipoRep from './form-tipoRep.jsx';
+import LeerEquipo from './leerEquipo.jsx';
 import ProtectedRoute from "./ProtectedRoute";
 import PublicRoute from "./PublicRoute";
 import 'bootstrap/dist/css/bootstrap.min.css';
@@ -66,6 +73,14 @@ function App() {
                 <Route path="/solicitud" element={<ProtectedRoute><RequestForm /></ProtectedRoute>} />
                 <Route path="/solicitudes" element={<ProtectedRoute><LeerSolicitud /></ProtectedRoute>} />
                 <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
+                <Route path="*" element={<div className="text-center mt-5"><h2>Página no encontrada</h2></div>} />
+                <Route path="/register" element={<PublicRoute><RegisterClient /></PublicRoute>} />
+                <Route path="/form-equipo" element={<ProtectedRoute><FormEquipo /></ProtectedRoute>} />
+                <Route path="/marcas" element={<ProtectedRoute><MarcaView /></ProtectedRoute>} />
+                <Route path="/tipos-rep" element={<ProtectedRoute><TipoRepView /></ProtectedRoute>} />
+                <Route path="/form-marca" element={<ProtectedRoute><FormMarca /></ProtectedRoute>} />
+                <Route path="/form-tipo-rep" element={<ProtectedRoute><FormTipoRep /></ProtectedRoute>} />
+                <Route path="/equipos" element={<ProtectedRoute><LeerEquipo /></ProtectedRoute>} />
             </Routes>
         </AuthProvider>
     );

@@ -1,81 +1,173 @@
 const db = require('../config/db-oracle');
 
-
-// Obtener todas las personas
+// ======================================================
+// OBTENER TODAS LAS PERSONAS
+// ======================================================
 exports.getAll = async (req, res) => {
   try {
-    const result = await db.execute(
-      `SELECT * FROM US_PPI.Persona`,
-      [],
-      { outFormat: db.OBJECT }
-    );
-
+    const result = await db.execute(`SELECT * FROM Persona`);
     res.json(result.rows);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 };
 
-// Obtener persona por ID
+// ======================================================
+// OBTENER PERSONA POR ID
+// ======================================================
 exports.getById = async (req, res) => {
   try {
     const { id } = req.params;
 
     const result = await db.execute(
       `SELECT * FROM Persona WHERE id_persona = :id`,
-      { id },
-      { outFormat: db.OBJECT }
+      { id }
     );
 
-    res.json(result.rows[0] || {});
+    res.json(result.rows[0] || null);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 };
 
-// Crear nueva persona
+// ======================================================
+// OBTENER PERSONA DEL TOKEN (si aplica)
+// ======================================================
+exports.getByUser = async (req, res) => {
+  try {
+    const userId = req.user?.id_persona;
+    if (!userId)
+      return res.status(401).json({ error: 'Usuario no autenticado' });
+
+    const result = await db.execute(
+      `SELECT * FROM Persona WHERE id_persona = :id`,
+      { id: userId }
+    );
+
+    res.json(result.rows[0] || null);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+// ======================================================
+// CREAR PERSONA
+// ======================================================
 exports.create = async (req, res) => {
   try {
-    const body = req.body;
+    let {
+      id_persona,
+      nombre,
+      primer_apellido,
+      segundo_apellido,
+      correo,
+      telefono,
+      id_perfil,
+      contrasena,
+      fecha_nacimiento
+    } = req.body;
+
+    // Normalizar fecha ISO → Oracle DATE
+    if (fecha_nacimiento) {
+      fecha_nacimiento = fecha_nacimiento.replace("Z", "").split(".")[0];
+    }
+
+    const sql = `
+      INSERT INTO Persona (
+        id_persona, nombre, primer_apellido, segundo_apellido, correo,
+        telefono, id_perfil, contrasena,
+        fecha_nacimiento
+      )
+      VALUES (
+        :id_persona, :nombre, :primer_apellido, :segundo_apellido, :correo,
+        :telefono, :id_perfil, :contrasena,
+        ${fecha_nacimiento ? "TO_DATE(:fecha_nacimiento, 'YYYY-MM-DD\"T\"HH24:MI:SS')" : "NULL"}
+      )
+    `;
 
     await db.execute(
-      `INSERT INTO Persona (
-        id_persona, nombre, primer_apellido, segundo_apellido,
-        correo, telefono, id_perfil
-      ) VALUES (
-        :id_persona, :nombre, :primer_apellido, :segundo_apellido,
-        :correo, :telefono, :id_perfil
-      )`,
-      body,
-      { autoCommit: true }  // 👈 necesario en Oracle
+      sql,
+      {
+        id_persona,
+        nombre,
+        primer_apellido,
+        segundo_apellido,
+        correo,
+        telefono,
+        id_perfil,
+        contrasena,
+        fecha_nacimiento
+      },
+      { autoCommit: true }
     );
 
     res.status(201).json({ message: 'Persona creada correctamente' });
   } catch (err) {
+    if (err.errorNum === "20010") {
+      return res.status(400).json({
+        ok: false,
+        message: err.message
+      });
+    } else if (err.errorNum === "00001") {
+      return res.status(400).json({
+        ok: false,
+        message: err.message
+      });
+    }
+    console.error('Error inesperado. Por favor contactar con equipo técnico.', err);
     res.status(500).json({ error: err.message });
   }
 };
 
-// Actualizar persona
+// ======================================================
+// ACTUALIZAR PERSONA
+// ======================================================
 exports.update = async (req, res) => {
   try {
     const { id } = req.params;
-    const body = req.body;
+
+    let {
+      nombre,
+      primer_apellido,
+      segundo_apellido,
+      correo,
+      telefono,
+      id_perfil,
+      contrasena,
+      fecha_nacimiento
+    } = req.body;
+
+    if (fecha_nacimiento) {
+      fecha_nacimiento = fecha_nacimiento.replace("Z", "").split(".")[0];
+    }
+
+    const sql = `
+      UPDATE Persona SET
+        nombre = :nombre,
+        primer_apellido = :primer_apellido,
+        segundo_apellido = :segundo_apellido,
+        correo = :correo,
+        telefono = :telefono,
+        id_perfil = :id_perfil,
+        contrasena = :contrasena,
+        fecha_nacimiento = ${fecha_nacimiento ? "TO_DATE(:fecha_nacimiento, 'YYYY-MM-DD\"T\"HH24:MI:SS')" : "NULL"}
+      WHERE id_persona = :id
+    `;
 
     await db.execute(
-      `UPDATE Persona
-       SET nombre = :nombre,
-           primer_apellido = :primer_apellido,
-           segundo_apellido = :segundo_apellido,
-           correo = :correo,
-           telefono = :telefono,
-           id_perfil = :id_perfil
-       WHERE id_persona = :id`,
+      sql,
       {
-        ...body,
+        nombre,
+        primer_apellido,
+        segundo_apellido,
+        correo,
+        telefono,
+        id_perfil,
+        contrasena,
+        fecha_nacimiento,
         id
       },
-      { autoCommit: true } // 👈 commit automático
+      { autoCommit: true }
     );
 
     res.json({ message: 'Persona actualizada correctamente' });
@@ -84,7 +176,9 @@ exports.update = async (req, res) => {
   }
 };
 
-// Eliminar persona
+// ======================================================
+// ELIMINAR PERSONA
+// ======================================================
 exports.remove = async (req, res) => {
   try {
     const { id } = req.params;
@@ -92,7 +186,7 @@ exports.remove = async (req, res) => {
     await db.execute(
       `DELETE FROM Persona WHERE id_persona = :id`,
       { id },
-      { autoCommit: true } // 👈 commit
+      { autoCommit: true }
     );
 
     res.json({ message: 'Persona eliminada correctamente' });

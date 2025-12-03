@@ -31,8 +31,8 @@ exports.create = async (req, res) => {
   try {
     const {
       id_equipo,
-      tipo_eq,
-      marca_eq,
+      id_tipo,
+      id_marca,
       id_persona,
       especificaciones,
       equipo_serial
@@ -41,27 +41,27 @@ exports.create = async (req, res) => {
     await db.execute(
       `INSERT INTO Equipo (
         id_equipo,
-        tipo_eq,
-        marca_eq,
+        id_tipo,
+        id_marca,
         id_persona,
         especificaciones,
         equipo_serial
       ) VALUES (
         :id_equipo,
-        :tipo_eq,
-        :marca_eq,
+        :id_tipo,
+        :id_marca,
         :id_persona,
         :especificaciones,
         :equipo_serial
       )`,
-      [
+      {
         id_equipo,
-        tipo_eq,
-        marca_eq,
+        id_tipo,
+        id_marca,
         id_persona,
         especificaciones,
         equipo_serial
-      ]
+      }
     );
 
     res.status(201).json({ message: 'Equipo creado correctamente' });
@@ -75,8 +75,8 @@ exports.update = async (req, res) => {
   try {
     const { id } = req.params;
     const {
-      tipo_eq,
-      marca_eq,
+      id_tipo,
+      id_marca,
       id_persona,
       especificaciones,
       equipo_serial
@@ -84,20 +84,20 @@ exports.update = async (req, res) => {
 
     await db.execute(
       `UPDATE Equipo
-       SET tipo_eq = :tipo_eq,
-           marca_eq = :marca_eq,
+       SET id_tipo = :id_tipo,
+           id_marca = :id_marca,
            id_persona = :id_persona,
            especificaciones = :especificaciones,
            equipo_serial = :equipo_serial
        WHERE id_equipo = :id`,
-      [
-        tipo_eq,
-        marca_eq,
+      {
+        id_tipo,
+        id_marca,
         id_persona,
         especificaciones,
         equipo_serial,
         id
-      ]
+      }
     );
 
     res.json({ message: 'Equipo actualizado correctamente' });

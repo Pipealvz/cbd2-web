@@ -10,7 +10,11 @@ function verifyTokenMiddleware(req, res, next) {
 
   try {
     const decoded = jwt.verify(token, JWT_SECRET);
-    req.user = { id_persona: decoded.id_persona, correo: decoded.correo };
+    req.user = {
+      id_persona: decoded.id_persona,
+      correo: decoded.correo,
+      id_perfil: decoded.id_perfil
+    };
     next();
   } catch (err) {
     return res.status(403).json({ error: 'Token inválido o expirado' });

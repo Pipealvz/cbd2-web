@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const db = require('../config/db-oracle'); // tu conexión Oracle
+const db = require('../config/db-oracle');
 const jwt = require('jsonwebtoken');
 const cors = require('cors');
 
@@ -21,7 +21,7 @@ router.post('/login', async (req, res) => {
 
     // Consulta con formato objeto
     const result = await connection.execute(
-      `SELECT id_persona, correo, contrasena 
+      `SELECT id_persona, correo, contrasena, id_perfil
        FROM persona
        WHERE correo = :correo`,
       { correo },
@@ -38,9 +38,9 @@ router.post('/login', async (req, res) => {
       return res.status(401).json({ error: 'Credenciales inválidas (contraseña)' });
     }
 
-    // Firmar JWT
+    // Firmar JWT incluyendo id_perfil
     const token = jwt.sign(
-      { id_persona: persona.ID_PERSONA, correo: persona.CORREO },
+      { id_persona: persona.ID_PERSONA, correo: persona.CORREO, id_perfil: persona.ID_PERFIL },
       JWT_SECRET,
       { expiresIn: '8h' }
     );
@@ -50,7 +50,8 @@ router.post('/login', async (req, res) => {
       token,
       user: {
         id_persona: persona.ID_PERSONA,
-        correo: persona.CORREO
+        correo: persona.CORREO,
+        id_perfil: persona.ID_PERFIL
       }
     });
 

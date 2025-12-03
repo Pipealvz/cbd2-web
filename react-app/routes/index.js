@@ -17,6 +17,8 @@ const tipoUsuarioRoutes = require("./tipoUsuario.routes");
 const solicitudRoutes = require("./solicitud.routes");
 const personaRoutes = require("./persona.routes");
 const estadoSolicitudRoutes = require("./estadoSolicitud.routes");
+const rolRoutes = require("./rol.routes");
+const perfilRoutes = require("./perfil.routes");
 
 router.get("/", (req, res) => {
     res.send("API funcionando correctamente");
@@ -35,6 +37,8 @@ router.use("/tipo-usuario", tipoUsuarioRoutes);
 router.use("/solicitud", solicitudRoutes);
 router.use("/persona", personaRoutes);
 router.use("/estado-solicitud", estadoSolicitudRoutes);
+router.use("/rol", rolRoutes);
+router.use("/perfil", perfilRoutes);
 
 // Ruta base
 

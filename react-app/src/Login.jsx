@@ -31,7 +31,7 @@ export default function Login() {
       navigate("/");
       // AuthProvider se encarga de guardar token en sessionStorage
     } catch (err) {
-      console.error("Error en login:", err);
+      console.log("Error en login:", err);
     }
   };
 
@@ -79,6 +79,12 @@ export default function Login() {
               </button>
             </div>
           </form>
+
+          <div className="text-center mt-3">
+            <a href="/register" className="text-primary fw-semibold" style={{ textDecoration: "none" }}>
+              ¿No tienes cuenta? Registrarse
+            </a>
+          </div>
         </div>
       </div>
     </div>

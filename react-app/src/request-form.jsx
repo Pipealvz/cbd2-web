@@ -2,14 +2,17 @@ import Swal from 'sweetalert2'
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { useState, useEffect } from 'react';
 import { useAuth } from './auth/AuthProvider';
+import { useLocation } from 'react-router-dom';
 import { v4 as uuidv4 } from 'uuid';
 import axios from 'axios';
 
 
 
 function RequestForm() {
-  const { auth } = useAuth();
+  const { auth, getAuthHeader } = useAuth();
   const userId = auth?.user?.id_persona;
+
+  const location = useLocation();
 
   const [formData, setFormData] = useState({
     id_solicitud: uuidv4(),
@@ -28,6 +31,8 @@ function RequestForm() {
   const [equipos, setEquipos] = useState([]);
   const [servicios, setServicios] = useState([]);
   const [tipoUs, setTipoUs] = useState([]);
+  const [marcas, setMarcas] = useState([]);
+  const [isEditing, setIsEditing] = useState(false);
 
   useEffect(() => {
     // Obtener datos de la API
@@ -37,19 +42,64 @@ function RequestForm() {
         if (userId) {
           equiposRes = await axios.get(`http://localhost:26001/api/equipo/${userId}`);
         }
-        const [serviciosRes, tipoUsRes] = await Promise.all([
+        const [serviciosRes, tipoUsRes, marcasRes] = await Promise.all([
           axios.get('http://localhost:26001/api/servicio'),
-          axios.get('http://localhost:26001/api/tipo-usuario')
+          axios.get('http://localhost:26001/api/tipo-usuario'),
+          axios.get('http://localhost:26001/api/marca')
         ]);
         setEquipos(equiposRes.data);
         setServicios(serviciosRes.data);
         setTipoUs(tipoUsRes.data);
+        setMarcas(marcasRes.data);
       } catch (err) {
         console.error('Error cargando datos:', err);
       }
     };
     fetchData();
   }, [userId]);
+
+  // Cargar solicitud a editar si viene ?edit=<id> en la URL
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const editId = params.get('edit');
+    if (!editId) return;
+
+    const loadSolicitud = async (id) => {
+      try {
+        const res = await axios.get(`http://localhost:26001/api/solicitud/${id}`, { headers: { ...getAuthHeader() } });
+        const data = res.data;
+        if (data) {
+          setFormData(prev => ({
+            ...prev,
+            id_solicitud: data.ID_SOLICITUD || data.id_solicitud || prev.id_solicitud,
+            id_persona: data.ID_PERSONA || data.id_persona || prev.id_persona,
+            id_estado: data.ID_ESTADO || data.id_estado || prev.id_estado,
+            observaciones: data.OBSERVACIONES || data.observaciones || prev.observaciones,
+            id_equipo: data.ID_EQUIPO || data.id_equipo || prev.id_equipo,
+            fecha_creacion: data.FECHA_CREACION || data.fecha_creacion || prev.fecha_creacion,
+            id_servicio: data.ID_SERVICIO || data.id_servicio || prev.id_servicio,
+            id_tipous: data.ID_TIPOUS || data.id_tipous || prev.id_tipous
+          }));
+          setIsEditing(true);
+        }
+      } catch (err) {
+        console.error('Error cargando solicitud para editar:', err);
+      }
+    };
+
+    loadSolicitud(editId);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location.search]);
+
+  // Ajustar id_tipous según el perfil del usuario (1 -> EMPLEADO, 2 -> CLIENTE)
+  useEffect(() => {
+    const perfil = auth?.user?.id_perfil;
+    if (perfil) {
+      const idTip = perfil === 1 ? 1 : perfil === 2 ? 2 : formData.id_tipous;
+      setFormData(prev => ({ ...prev, id_tipous: idTip }));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [auth?.user?.id_perfil]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -72,7 +122,7 @@ function RequestForm() {
     if (!formData.id_equipo) newErrors.id_equipo = 'Debe seleccionar un equipo';
     if (!formData.id_servicio) newErrors.id_servicio = 'Debe seleccionar un servicio';
     if (formData.observaciones && formData.observaciones.length > 200) {
-      newErrors.observaciones = 'Las observaciones no pueden exceder 200 caracteres';
+      newErrors.observaciones = 'Las observaciones no pueden exceder los 1000 caracteres';
     }
     if (!formData.id_tipous) newErrors.id_tipous = 'Debe seleccionar un tipo de usuario';
 
@@ -86,7 +136,12 @@ function RequestForm() {
     if (Object.keys(newErrors).length === 0) {
       try {
         console.log('Enviando datos:', formData);
-        await axios.post('http://localhost:26001/api/solicitud', formData);
+        // Si estamos en modo edición, llamamos al endpoint PUT
+        if (isEditing && formData.id_solicitud) {
+          await axios.put(`http://localhost:26001/api/solicitud/${formData.id_solicitud}`, formData, { headers: { ...getAuthHeader() } });
+        } else {
+          await axios.post('http://localhost:26001/api/solicitud', formData, { headers: { ...getAuthHeader() } });
+        }
         Swal.fire({
           title: "Exitoso",
           text: "Solicitud enviada exitosamente",
@@ -153,7 +208,10 @@ function RequestForm() {
                           <option value="" disabled>No hay elementos</option>
                         ) : (
                           equipos.map(eq => (
-                            <option key={eq.ID_EQUIPO} value={eq.ID_EQUIPO}>{eq.TIPO_EQ} - {eq.MARCA_EQ}</option>
+                            <option key={eq.ID_EQUIPO} value={eq.ID_EQUIPO}>{(() => {
+                              const marca = marcas.find(m => (m.ID_MARCA || m.id_marca) == (eq.ID_MARCA || eq.id_marca));
+                              return (marca && (marca.NOMBRE_MARCA || marca.nombre_marca)) || (eq.ID_MARCA || eq.id_marca) || 'Marca desconocida';
+                            })()} - {eq.EQUIPO_SERIAL}</option>
                           ))
                         )}
                       </select>
@@ -163,17 +221,12 @@ function RequestForm() {
                       <label className="form-label fw-bold">
                         Tipo usuario <span className="text-danger">*</span>
                       </label>
-                      <select
-                        name="id_tipous"
-                        value={formData.id_tipous}
-                        onChange={handleChange}
-                        className={`form-select shadow-sm ${errors.id_tipous ? 'is-invalid' : ''}`}
-                      >
-                        <option value="">Seleccione su tipo de usuario</option>
-                        {tipoUs.map(e => (
-                          <option key={e.ID_TIPOUS} value={e.ID_TIPOUS}>{e.NOMBRE_TIPOUS}</option>
-                        ))}
-                      </select>
+                      <input
+                        type="text"
+                        value={auth?.user?.id_perfil === 1 ? 'EMPLEADO' : auth?.user?.id_perfil === 2 ? 'CLIENTE' : ''}
+                        disabled
+                        className={`form-control shadow-sm ${errors.id_tipous ? 'is-invalid' : ''}`}
+                      />
                       {errors.id_tipous && <div className="invalid-feedback">{errors.id_tipous}</div>}
                     </div>
                   </div>
@@ -216,12 +269,25 @@ function RequestForm() {
 
                   {/* Botones */}
                   <div className="col d-flex justify-content-end gap-2">
-                    <button type="button" onClick={resetForm} className="btn btn-secondary px-4 py-2">
-                      Limpiar
-                    </button>
-                    <button type="submit" className="btn btn-primary px-4 py-2">
-                      Enviar Solicitud
-                    </button>
+                    {isEditing ? (
+                      <>
+                        <button type="button" onClick={() => { resetForm(); setIsEditing(false); }} className="btn btn-secondary px-4 py-2">
+                          Cancelar edición
+                        </button>
+                        <button type="submit" className="btn btn-warning px-4 py-2">
+                          Actualizar Solicitud
+                        </button>
+                      </>
+                    ) : (
+                      <>
+                        <button type="button" onClick={resetForm} className="btn btn-secondary px-4 py-2">
+                          Limpiar
+                        </button>
+                        <button type="submit" className="btn btn-primary px-4 py-2">
+                          Enviar Solicitud
+                        </button>
+                      </>
+                    )}
                   </div>
                 </div>
               </form>

@@ -2,68 +2,111 @@ const db = require('../config/db-oracle');
 
 module.exports = {
     getAll: async (req, res) => {
+        let conn;
         try {
-            const conn = await db.getConnection();
-            const result = await conn.execute(`SELECT * FROM Tipo_Rep`);
-            await conn.close();
+            conn = await db.getConnection();
+            const result = await conn.execute(
+                `SELECT id_tipo_rep, nombre_tipo_rep 
+                 FROM TIPO_REP 
+                 ORDER BY id_tipo_rep`
+            );
             res.json(result.rows);
         } catch (err) {
             res.status(500).json({ error: err.message });
+        } finally {
+            if (conn) await conn.close();
         }
     },
+
     getById: async (req, res) => {
+        let conn;
         try {
-            const conn = await db.getConnection();
+            conn = await db.getConnection();
             const result = await conn.execute(
-                `SELECT * FROM Tipo_Rep WHERE id_tipo_rep = :id`,
-                [req.params.id]
+                `SELECT id_tipo_rep, nombre_tipo_rep 
+                 FROM TIPO_REP 
+                 WHERE id_tipo_rep = :id`,
+                { id: req.params.id }
             );
-            await conn.close();
             res.json(result.rows[0] || null);
         } catch (err) {
             res.status(500).json({ error: err.message });
+        } finally {
+            if (conn) await conn.close();
         }
     },
+
     create: async (req, res) => {
+        let conn;
         try {
-            const conn = await db.getConnection();
+            const { id_tipo_rep, nombre_tipo_rep } = req.body;
+
+            if (!id_tipo_rep || !nombre_tipo_rep) {
+                return res
+                    .status(400)
+                    .json({ error: "id_tipo_rep y nombre_tipo_rep son requeridos." });
+            }
+
+            conn = await db.getConnection();
             await conn.execute(
-                `INSERT INTO Tipo_Rep (id_tipo_rep, nombre_tipo_rep) VALUES (:id, :name)`,
-                [req.body.id, req.body.name]
+                `INSERT INTO TIPO_REP (id_tipo_rep, nombre_tipo_rep)
+                 VALUES (:id_tipo_rep, :nombre_tipo_rep)`,
+                { id_tipo_rep, nombre_tipo_rep }
             );
             await conn.commit();
-            await conn.close();
-            res.json({ message: "Creado correctamente" });
+
+            res.json({ message: "Tipo_Rep creado correctamente" });
         } catch (err) {
             res.status(500).json({ error: err.message });
+        } finally {
+            if (conn) await conn.close();
         }
     },
+
     update: async (req, res) => {
+        let conn;
         try {
-            const conn = await db.getConnection();
+            const { nombre_tipo_rep } = req.body;
+
+            if (!nombre_tipo_rep) {
+                return res.status(400).json({ error: "nombre_tipo_rep es requerido." });
+            }
+
+            conn = await db.getConnection();
             await conn.execute(
-                `UPDATE Tipo_Rep SET nombre_tipo_rep = :name WHERE id_tipo_rep = :id`,
-                [req.body.name, req.params.id]
+                `UPDATE TIPO_REP 
+                 SET nombre_tipo_rep = :nombre_tipo_rep
+                 WHERE id_tipo_rep = :id_tipo_rep`,
+                {
+                    nombre_tipo_rep,
+                    id_tipo_rep: req.params.id
+                }
             );
             await conn.commit();
-            await conn.close();
-            res.json({ message: "Actualizado correctamente" });
+
+            res.json({ message: "Tipo_Rep actualizado correctamente" });
         } catch (err) {
             res.status(500).json({ error: err.message });
+        } finally {
+            if (conn) await conn.close();
         }
     },
+
     delete: async (req, res) => {
+        let conn;
         try {
-            const conn = await db.getConnection();
+            conn = await db.getConnection();
             await conn.execute(
-                `DELETE FROM Tipo_Rep WHERE id_tipo_rep = :id`,
-                [req.params.id]
+                `DELETE FROM TIPO_REP WHERE id_tipo_rep = :id`,
+                { id: req.params.id }
             );
             await conn.commit();
-            await conn.close();
-            res.json({ message: "Eliminado correctamente" });
+
+            res.json({ message: "Tipo_Rep eliminado correctamente" });
         } catch (err) {
             res.status(500).json({ error: err.message });
+        } finally {
+            if (conn) await conn.close();
         }
     }
 };

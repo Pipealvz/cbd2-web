@@ -17,14 +17,24 @@ function LeerSolicitud() {
   const rol = "empleado"; // <-- CAMBIA esto según login real
 
   useEffect(() => {
-    // Obtener solicitudes
-    fetch(`http://localhost:26001/api/solicitud/user/${auth.user.ID_PERSONA}`, {
+    // Esperar hasta que el usuario esté cargado
+    const personaId = auth?.user?.ID_PERSONA || auth?.user?.id_persona;
+    if (!personaId) {
+      // No tenemos id de persona aún; esperaremos a que auth esté disponible
+      return;
+    }
+
+    // Obtener solicitudes del usuario
+    fetch(`http://localhost:26001/api/solicitud/user/${personaId}`, {
       headers: {
-        ...getAuthHeader(),  // 👉 Enviamos Authorization: Bearer token
+        ...getAuthHeader(), // 👉 Enviamos Authorization: Bearer token
       },
     })
       .then((res) => res.json())
-      .then((data) => { console.log("DATA RECIBIDA:", data); setSolicitudes(data) })
+      .then((data) => {
+        console.log("DATA RECIBIDA:", data);
+        setSolicitudes(data || []);
+      })
       .catch((err) => console.error("Error al obtener solicitudes:", err));
 
     // Obtener servicios para el select
@@ -42,7 +52,8 @@ function LeerSolicitud() {
         console.error("Error al obtener servicios:", err);
         setServicios([]);
       });
-  }, []);
+    // re-ejecutar cuando auth cambie (por ejemplo después del login)
+  }, [auth, getAuthHeader]);
 
   const eliminarSolicitud = (id) => {
     Swal.fire({

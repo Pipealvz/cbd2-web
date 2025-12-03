@@ -35,11 +35,11 @@ exports.getAll = async (req, res) => {
 // ======================================================
 exports.getById = async (req, res) => {
   try {
-    const { id } = req.params;
+    const { id_solicitud } = req.params;
 
     const result = await db.execute(
-      `SELECT * FROM Solicitud WHERE id_solicitud = :id`,
-      { id }
+      `SELECT * FROM Solicitud WHERE id_solicitud = :id_solicitud`,
+      { id_solicitud}
     );
 
     return res.json(result.rows[0] || null);

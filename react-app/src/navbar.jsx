@@ -7,11 +7,17 @@ function Navbar() {
     const location = useLocation();
 
     if (location.pathname === "/login") return null;
+    // if (location.pathname === "/register") return null;
 
     const handleLogout = () => {
         logout();
         navigate("/login");
     };
+    const perfil = auth?.user?.id_perfil ?? auth?.user?.ID_PERFIL ?? null;
+    const perfilNum = perfil !== null ? Number(perfil) : null;
+    const isAdmin = perfilNum === 1;
+    const isClient = perfilNum === 2;
+
     return (
         <nav className="navbar navbar-expand-lg navbar-dark bg-primary shadow-sm">
             <div className="container-fluid">
@@ -39,12 +45,34 @@ function Navbar() {
                                         Crear Solicitud
                                     </Link>
                                 </li>
-
                                 <li className="nav-item">
                                     <Link className="nav-link" to="/solicitudes">
                                         Ver Solicitudes
                                     </Link>
                                 </li>
+                                <li className="nav-item">
+                                    <Link className="nav-link" to="/form-equipo">
+                                        Crear Equipo
+                                    </Link>
+                                </li><li className="nav-item">
+                                    <Link className="nav-link" to="/equipos">
+                                        Ver Equipos
+                                    </Link>
+                                </li>
+                                {isAdmin && (
+                                    <>
+                                        <li className="nav-item">
+                                            <Link className="nav-link" to="/marcas">
+                                                Ver Marcas
+                                            </Link>
+                                        </li>
+                                        <li className="nav-item">
+                                            <Link className="nav-link" to="/tipos-rep">
+                                                Ver Tipos Rep
+                                            </Link>
+                                        </li>
+                                    </>
+                                )}
                             </>
                         )}
                     </ul>
@@ -55,7 +83,7 @@ function Navbar() {
                         {auth ? (
                             <>
                                 <li className="nav-item d-flex align-items-center me-3 text-white fw-semibold">
-                                    👤 {auth.user?.username || "Usuario"}
+                                    👤 {auth.user?.correo || "Usuario"}
                                 </li>
 
                                 <li className="nav-item">

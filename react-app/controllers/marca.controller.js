@@ -2,68 +2,101 @@ const db = require('../config/db-oracle');
 
 module.exports = {
     getAll: async (req, res) => {
+        let conn;
         try {
-            const conn = await db.getConnection();
-            const result = await conn.execute(`SELECT * FROM Marca`);
-            await conn.close();
+            conn = await db.getConnection();
+            const result = await conn.execute(
+                `SELECT id_marca, nombre_marca FROM MARCA ORDER BY id_marca`
+            );
             res.json(result.rows);
         } catch (err) {
             res.status(500).json({ error: err.message });
+        } finally {
+            if (conn) await conn.close();
         }
     },
+
     getById: async (req, res) => {
+        let conn;
         try {
-            const conn = await db.getConnection();
+            conn = await db.getConnection();
             const result = await conn.execute(
-                `SELECT * FROM Marca WHERE id_marca = :id`,
-                [req.params.id]
+                `SELECT id_marca, nombre_marca FROM MARCA WHERE id_marca = :id`,
+                { id: req.params.id }
             );
-            await conn.close();
             res.json(result.rows[0] || null);
         } catch (err) {
             res.status(500).json({ error: err.message });
+        } finally {
+            if (conn) await conn.close();
         }
     },
+
     create: async (req, res) => {
+        let conn;
         try {
-            const conn = await db.getConnection();
+            const { id_marca, nombre_marca } = req.body;
+
+            if (!id_marca || !nombre_marca) {
+                return res.status(400).json({ error: "id_marca y nombre_marca son requeridos." });
+            }
+
+            conn = await db.getConnection();
             await conn.execute(
-                `INSERT INTO Marca (id_marca, nombre_marca) VALUES (:id, :name)`,
-                { id: req.body.id, name: req.body.name }
+                `INSERT INTO MARCA (id_marca, nombre_marca) 
+                 VALUES (:id_marca, :nombre_marca)`,
+                { id_marca, nombre_marca }
             );
             await conn.commit();
-            await conn.close();
-            res.json({ message: "Creado correctamente" });
+
+            res.json({ message: "Marca creada correctamente" });
         } catch (err) {
             res.status(500).json({ error: err.message });
+        } finally {
+            if (conn) await conn.close();
         }
     },
+
     update: async (req, res) => {
+        let conn;
         try {
-            const conn = await db.getConnection();
+            const { nombre_marca } = req.body;
+
+            if (!nombre_marca) {
+                return res.status(400).json({ error: "nombre_marca es requerido." });
+            }
+
+            conn = await db.getConnection();
             await conn.execute(
-                `UPDATE Marca SET nombre_marca = :name WHERE id_marca = :id`,
-                [req.body.name, req.params.id]
+                `UPDATE MARCA 
+                 SET nombre_marca = :nombre_marca 
+                 WHERE id_marca = :id_marca`,
+                { nombre_marca, id_marca: req.params.id }
             );
             await conn.commit();
-            await conn.close();
-            res.json({ message: "Actualizado correctamente" });
+
+            res.json({ message: "Marca actualizada correctamente" });
         } catch (err) {
             res.status(500).json({ error: err.message });
+        } finally {
+            if (conn) await conn.close();
         }
     },
+
     delete: async (req, res) => {
+        let conn;
         try {
-            const conn = await db.getConnection();
+            conn = await db.getConnection();
             await conn.execute(
-                `DELETE FROM Marca WHERE id_marca = :id`,
-                [req.params.id]
+                `DELETE FROM MARCA WHERE id_marca = :id`,
+                { id: req.params.id }
             );
             await conn.commit();
-            await conn.close();
-            res.json({ message: "Eliminado correctamente" });
+            res.json({ message: "Marca eliminada correctamente" });
         } catch (err) {
             res.status(500).json({ error: err.message });
+        } finally {
+            if (conn) await conn.close();
         }
     }
 };
