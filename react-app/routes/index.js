@@ -19,6 +19,7 @@ const personaRoutes = require("./persona.routes");
 const estadoSolicitudRoutes = require("./estadoSolicitud.routes");
 const rolRoutes = require("./rol.routes");
 const perfilRoutes = require("./perfil.routes");
+const detallesRoutes = require("./detalles.routes");
 
 router.get("/", (req, res) => {
     res.send("API funcionando correctamente");
@@ -39,6 +40,7 @@ router.use("/persona", personaRoutes);
 router.use("/estado-solicitud", estadoSolicitudRoutes);
 router.use("/rol", rolRoutes);
 router.use("/perfil", perfilRoutes);
+router.use("/detalles", detallesRoutes);
 
 // Ruta base
 

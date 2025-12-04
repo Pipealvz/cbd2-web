@@ -117,16 +117,20 @@ exports.create = async (req, res) => {
 exports.update = async (req, res) => {
   try {
     const { id } = req.params;
-
     let {
+      id_factura,
+      id_persona,
       id_persona_empleado,
       id_estado,
       observaciones,
+      id_garantia,
       id_equipo,
+      fecha_creacion,
       id_servicio,
       id_tipous
     } = req.body;
 
+    // Normalizar fecha si viene
     if (fecha_creacion) {
       fecha_creacion = fecha_creacion.replace("Z", "").split(".")[0];
     }
@@ -186,4 +190,5 @@ exports.remove = async (req, res) => {
   } catch (err) {
     return res.status(500).json({ error: err.message });
   }
+
 };

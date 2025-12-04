@@ -71,6 +71,11 @@ function Navbar() {
                                                 Ver Tipos Rep
                                             </Link>
                                         </li>
+                                        <li className="nav-item">
+                                            <Link className="nav-link" to="/estado-pedidos">
+                                                Estado Pedidos
+                                            </Link>
+                                        </li>
                                     </>
                                 )}
                             </>

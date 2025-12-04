@@ -118,8 +118,7 @@ function RequestForm() {
 
   const validateForm = () => {
     const newErrors = {};
-
-    if (!formData.id_equipo) newErrors.id_equipo = 'Debe seleccionar un equipo';
+    if (!formData.id_equipo && !isEditing) newErrors.id_equipo = 'Debe seleccionar un equipo';
     if (!formData.id_servicio) newErrors.id_servicio = 'Debe seleccionar un servicio';
     if (formData.observaciones && formData.observaciones.length > 200) {
       newErrors.observaciones = 'Las observaciones no pueden exceder los 1000 caracteres';
@@ -135,13 +134,21 @@ function RequestForm() {
 
     if (Object.keys(newErrors).length === 0) {
       try {
-        console.log('Enviando datos:', formData);
-        // Si estamos en modo edición, llamamos al endpoint PUT
+        const url = isEditing && formData.id_solicitud
+          ? `http://localhost:26001/api/solicitud/${formData.id_solicitud}`
+          : 'http://localhost:26001/api/solicitud';
+        console.log('Enviando', isEditing ? 'PUT' : 'POST', '->', url);
+        console.log('Payload:', formData);
+
+        let res;
         if (isEditing && formData.id_solicitud) {
-          await axios.put(`http://localhost:26001/api/solicitud/${formData.id_solicitud}`, formData, { headers: { ...getAuthHeader() } });
+          const payload = { ...formData };
+          delete payload.id_equipo;
+          res = await axios.put(url, payload, { headers: { ...getAuthHeader() } });
         } else {
-          await axios.post('http://localhost:26001/api/solicitud', formData, { headers: { ...getAuthHeader() } });
+          res = await axios.post(url, formData, { headers: { ...getAuthHeader() } });
         }
+        console.log('Respuesta servidor:', res?.data);
         Swal.fire({
           title: "Exitoso",
           text: "Solicitud enviada exitosamente",
@@ -150,9 +157,11 @@ function RequestForm() {
         resetForm();
       } catch (err) {
         console.error('Error enviando solicitud:', err);
+        console.error('Error response data:', err.response?.data);
+        const serverMsg = err.response?.data?.error || err.response?.data?.message || JSON.stringify(err.response?.data) || err.message;
         Swal.fire({
           title: "Error",
-          text: "Error al enviar la solicitud",
+          text: `Error al enviar la solicitud: ${serverMsg}`,
           icon: "error"
         });
       }
@@ -197,25 +206,49 @@ function RequestForm() {
                       <label className="form-label fw-bold">
                         Equipo <span className="text-danger">*</span>
                       </label>
-                      <select
-                        name="id_equipo"
-                        value={formData.id_equipo}
-                        onChange={handleChange}
-                        className={`form-select shadow-sm ${errors.id_equipo ? 'is-invalid' : ''}`}
-                      >
-                        <option value="">Seleccione un equipo</option>
-                        {equipos.length === 0 ? (
-                          <option value="" disabled>No hay elementos</option>
-                        ) : (
-                          equipos.map(eq => (
-                            <option key={eq.ID_EQUIPO} value={eq.ID_EQUIPO}>{(() => {
-                              const marca = marcas.find(m => (m.ID_MARCA || m.id_marca) == (eq.ID_MARCA || eq.id_marca));
-                              return (marca && (marca.NOMBRE_MARCA || marca.nombre_marca)) || (eq.ID_MARCA || eq.id_marca) || 'Marca desconocida';
-                            })()} - {eq.EQUIPO_SERIAL}</option>
-                          ))
-                        )}
-                      </select>
-                      {errors.id_equipo && <div className="invalid-feedback">{errors.id_equipo}</div>}
+                      {isEditing ? (
+                        (() => {
+                          const selected = equipos.find(e => (e.ID_EQUIPO || e.id_equipo) == formData.id_equipo);
+                          if (!selected) {
+                            return (
+                              <input type="text" value={formData.id_equipo || 'Equipo desconocido'} disabled className={`form-control shadow-sm ${errors.id_equipo ? 'is-invalid' : ''}`} />
+                            );
+                          }
+                          const marcaObj = marcas.find(m => (m.ID_MARCA || m.id_marca) == (selected.ID_MARCA || selected.id_marca));
+                          const marcaName = (marcaObj && (marcaObj.NOMBRE_MARCA || marcaObj.nombre_marca)) || (selected.ID_MARCA || selected.id_marca) || 'Marca desconocida';
+                          const label = `${marcaName} - ${selected.EQUIPO_SERIAL || selected.equipo_serial}`;
+                          return (
+                            <input
+                              type="text"
+                              value={label}
+                              disabled
+                              className={`form-control shadow-sm ${errors.id_equipo ? 'is-invalid' : ''}`}
+                            />
+                          );
+                        })()
+                      ) : (
+                        <>
+                          <select
+                            name="id_equipo"
+                            value={formData.id_equipo}
+                            onChange={handleChange}
+                            className={`form-select shadow-sm ${errors.id_equipo ? 'is-invalid' : ''}`}
+                          >
+                            <option value="">Seleccione un equipo</option>
+                            {equipos.length === 0 ? (
+                              <option value="" disabled>No hay elementos</option>
+                            ) : (
+                              equipos.map(eq => (
+                                <option key={eq.ID_EQUIPO || eq.id_equipo} value={eq.ID_EQUIPO || eq.id_equipo}>{(() => {
+                                  const marca = marcas.find(m => (m.ID_MARCA || m.id_marca) == (eq.ID_MARCA || eq.id_marca));
+                                  return (marca && (marca.NOMBRE_MARCA || marca.nombre_marca)) || (eq.ID_MARCA || eq.id_marca) || 'Marca desconocida';
+                                })()} - {eq.EQUIPO_SERIAL || eq.equipo_serial}</option>
+                              ))
+                            )}
+                          </select>
+                          {errors.id_equipo && <div className="invalid-feedback">{errors.id_equipo}</div>}
+                        </>
+                      )}
                     </div>
                     <div className='w-50 ms-1'>
                       <label className="form-label fw-bold">
