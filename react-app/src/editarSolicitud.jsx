@@ -147,6 +147,7 @@ const EditarSolicitud = () => {
                             name="ID_EQUIPO"
                             value={formData.ID_EQUIPO || ''}
                             onChange={handleChange}
+                            disabled
                         />
                     </div>
                     <div className="col-md-4 mb-3">
