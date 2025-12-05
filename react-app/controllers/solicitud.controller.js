@@ -126,8 +126,8 @@ exports.update = async (req, res) => {
       observaciones,
       id_garantia,
       id_equipo,
-      id_servicio,
-      id_tipous
+      id_servicio
+      
     } = req.body;
 
     await db.execute(
@@ -140,8 +140,8 @@ exports.update = async (req, res) => {
         observaciones = :observaciones,
         id_garantia = :id_garantia,
         id_equipo = :id_equipo,
-        id_servicio = :id_servicio,
-        id_tipous = :id_tipous
+        id_servicio = :id_servicio
+         
       WHERE id_solicitud = :id
       `,
       {
@@ -153,7 +153,7 @@ exports.update = async (req, res) => {
         id_garantia,
         id_equipo,
         id_servicio,
-        id_tipous,
+        
         id
       },
       { autoCommit: true }
