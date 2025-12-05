@@ -8,8 +8,11 @@ function LeerSolicitud() {
   const { auth, getAuthHeader } = useAuth();
   const [solicitudes, setSolicitudes] = useState([]);
   const [vista, setVista] = useState("card");
-  const [servicios, setServicios] = useState([]); // <-- agregar esto
+  const [servicios, setServicios] = useState([]);
   const navigate = useNavigate();
+  const handleNavigate = (id_solicitud) => {
+    navigate('/editar-solicitud', { state: { id_solicitud } });
+  };
   const [estados, setEstados] = useState([
     { id: 1, nombre: "Completado" },
     { id: 0, nombre: "No completado" }
@@ -31,7 +34,7 @@ function LeerSolicitud() {
     })
       .then((res) => res.json())
       .then((data) => {
-        console.log("DATA RECIBIDA:", data);
+        //console.log("DATA RECIBIDA:", data);
         setSolicitudes(data || []);
       })
       .catch((err) => console.error("Error al obtener solicitudes:", err));
@@ -44,7 +47,7 @@ function LeerSolicitud() {
     })
       .then((res) => res.json())
       .then((data) => {
-        console.log("SERVICIOS RECIBIDOS:", data);
+        //console.log("SERVICIOS RECIBIDOS:", data);
         setServicios(Array.isArray(data) ? data : []);
       })
       .catch((err) => {
@@ -122,7 +125,7 @@ function LeerSolicitud() {
                 className="card shadow-sm border-0"
                 style={{ borderRadius: "12px" }}
               >
-                <div className="card-body" role="button" onClick={() => navigate(`/editar-solicitud`)}>
+                <div className="card-body" role="button" onClick={() => handleNavigate(s.ID_SOLICITUD)}>
                   <h5 className="card-title text-primary fw-bold">
                     Solicitud #{s.ID_SOLICITUD}
                   </h5>
@@ -132,7 +135,7 @@ function LeerSolicitud() {
                   </span>
                 </div>
                 <div className="card-footer bg-transparent border-0 d-flex justify-content-end">
-                  <button className="btn btn-danger btn-sm" onClick={() => eliminarSolicitud(s.ID_SOLICITUD)}>
+                  <button className="btn btn-danger btn-sm" onClick={(e) => { e.stopPropagation(); eliminarSolicitud(s.ID_SOLICITUD); }}>
                     Eliminar
                   </button>
                 </div>
@@ -147,7 +150,7 @@ function LeerSolicitud() {
               key={s.ID_SOLICITUD}
               className="list-group-item d-flex justify-content-between align-items-start"
             >
-              <div role="button" onClick={() => navigate(`/editar-solicitud`)}>
+              <div role="button" onClick={() => handleNavigate(s.ID_SOLICITUD)}>
                 <h6 className="fw-bold text-primary">
                   Solicitud #{s.ID_SOLICITUD}
                 </h6>
@@ -157,7 +160,7 @@ function LeerSolicitud() {
                 <span className="badge bg-secondary mb-2">
                   Estado { (estados.find(st => st.id == s.ID_ESTADO)?.nombre) || s.ID_ESTADO }
                 </span>
-                <button className="btn btn-danger btn-sm" onClick={() => eliminarSolicitud(s.ID_SOLICITUD)}>
+                <button className="btn btn-danger btn-sm" onClick={(e) => { e.stopPropagation(); eliminarSolicitud(s.ID_SOLICITUD); }}>
                   Eliminar
                 </button>
               </div>

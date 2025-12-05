@@ -39,7 +39,7 @@ exports.getById = async (req, res) => {
 
     const result = await db.execute(
       `SELECT * FROM Solicitud WHERE id_solicitud = :id_solicitud`,
-      { id_solicitud}
+      { id_solicitud }
     );
 
     return res.json(result.rows[0] || null);
@@ -47,6 +47,7 @@ exports.getById = async (req, res) => {
     return res.status(500).json({ error: err.message });
   }
 };
+
 
 // ======================================================
 // CREAR SOLICITUD

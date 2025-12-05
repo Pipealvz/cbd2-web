@@ -5,7 +5,7 @@ const { verifyTokenMiddleware } = require('../middleware/authMiddleware');
 
 // CRUD básico
 router.get('/', solicitudController.getAll);
-router.get('/:id', solicitudController.getById);
+router.get('/:id_solicitud', solicitudController.getById);
 router.post('/', solicitudController.create);
 router.put('/:id', solicitudController.update);
 router.delete('/:id', solicitudController.remove);
