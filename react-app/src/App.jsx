@@ -15,6 +15,7 @@ import LeerEquipo from './leerEquipo.jsx';
 import ProtectedRoute from "./ProtectedRoute";
 import PublicRoute from "./PublicRoute";
 import EstadoPedidosView from './DetalleSolicitudView.jsx';
+import EditarSolicitud from './editarSolicitud.jsx';
 import 'bootstrap/dist/css/bootstrap.min.css';
 
 function App() {
@@ -83,6 +84,7 @@ function App() {
                 <Route path="/form-tipo-rep" element={<ProtectedRoute><FormTipoRep /></ProtectedRoute>} />
                 <Route path="/equipos" element={<ProtectedRoute><LeerEquipo /></ProtectedRoute>} />
                 <Route path="/estado-pedidos" element={<ProtectedRoute><EstadoPedidosView /></ProtectedRoute>} />
+                <Route path="/editar-solicitud" element={<ProtectedRoute><EditarSolicitud /></ProtectedRoute>} />
             </Routes>
         </AuthProvider>
     );

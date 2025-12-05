@@ -125,15 +125,9 @@ exports.update = async (req, res) => {
       observaciones,
       id_garantia,
       id_equipo,
-      fecha_creacion,
       id_servicio,
       id_tipous
     } = req.body;
-
-    // Normalizar fecha si viene
-    if (fecha_creacion) {
-      fecha_creacion = fecha_creacion.replace("Z", "").split(".")[0];
-    }
 
     await db.execute(
       `
@@ -145,7 +139,6 @@ exports.update = async (req, res) => {
         observaciones = :observaciones,
         id_garantia = :id_garantia,
         id_equipo = :id_equipo,
-        fecha_creacion = ${fecha_creacion ? "TO_DATE(:fecha_creacion, 'YYYY-MM-DD\"T\"HH24:MI:SS')" : "NULL"},
         id_servicio = :id_servicio,
         id_tipous = :id_tipous
       WHERE id_solicitud = :id
@@ -158,7 +151,6 @@ exports.update = async (req, res) => {
         observaciones,
         id_garantia,
         id_equipo,
-        fecha_creacion,
         id_servicio,
         id_tipous,
         id
