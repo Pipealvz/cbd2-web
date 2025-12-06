@@ -20,9 +20,11 @@ function RequestForm() {
     id_estado: 1,
     observaciones: '',
     id_equipo: 0,
-    fecha_creacion: new Date(),
+    fecha_creacion: new Date().toISOString().split('T')[0],
     id_servicio: 0,
-    id_tipous: 0
+    id_tipous: 0,
+    id_persona_empleado: 0,
+    id_factura: 0
   });
 
   //console.log('Formulario inicializado con ID:', formData.id_solicitud);
@@ -78,7 +80,9 @@ function RequestForm() {
             id_equipo: data.ID_EQUIPO || data.id_equipo || prev.id_equipo,
             fecha_creacion: data.FECHA_CREACION || data.fecha_creacion || prev.fecha_creacion,
             id_servicio: data.ID_SERVICIO || data.id_servicio || prev.id_servicio,
-            id_tipous: data.ID_TIPOUS || data.id_tipous || prev.id_tipous
+            id_tipous: data.ID_TIPOUS || data.id_tipous || prev.id_tipous,
+            id_persona_empleado: 0,
+            id_factura: 0
           }));
           setIsEditing(true);
         }
@@ -123,7 +127,6 @@ function RequestForm() {
     if (formData.observaciones && formData.observaciones.length > 200) {
       newErrors.observaciones = 'Las observaciones no pueden exceder los 1000 caracteres';
     }
-    if (!formData.id_tipous) newErrors.id_tipous = 'Debe seleccionar un tipo de usuario';
 
     return newErrors;
   };
@@ -178,9 +181,11 @@ function RequestForm() {
       id_estado: 1,
       observaciones: '',
       id_equipo: 0,
-      fecha_creacion: new Date(),
+      fecha_creacion: new Date().toISOString().split('T')[0],
       id_servicio: 0,
-      id_tipous: 0
+      id_tipous: 0,
+      id_persona_empleado: 0,
+      id_factura: 0
     }));
     setErrors({});
   };

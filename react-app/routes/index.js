@@ -20,6 +20,7 @@ const estadoSolicitudRoutes = require("./estadoSolicitud.routes");
 const rolRoutes = require("./rol.routes");
 const perfilRoutes = require("./perfil.routes");
 const detallesRoutes = require("./detalles.routes");
+const facturaRoutes = require("./factura.routes");
 
 router.get("/", (req, res) => {
     res.send("API funcionando correctamente");
@@ -41,6 +42,7 @@ router.use("/estado-solicitud", estadoSolicitudRoutes);
 router.use("/rol", rolRoutes);
 router.use("/perfil", perfilRoutes);
 router.use("/detalles", detallesRoutes);
+router.use("/factura", facturaRoutes);
 
 // Ruta base
 

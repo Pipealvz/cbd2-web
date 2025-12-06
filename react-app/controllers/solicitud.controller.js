@@ -38,78 +38,74 @@ exports.getById = async (req, res) => {
     const { id_solicitud } = req.params;
 
     const result = await db.execute(
-      `SELECT * FROM Solicitud WHERE id_solicitud = :id_solicitud`,
-      { id_solicitud}
+      `
+          SELECT 
+              s.ID_SOLICITUD,
+              s.ID_FACTURA,
+              s.ID_PERSONA,
+              s.ID_PERSONA_EMPLEADO,
+              s.ID_ESTADO,
+              s.OBSERVACIONES,
+              s.ID_GARANTIA,
+              s.ID_EQUIPO,
+              s.ID_SERVICIO,
+              s.FECHA_CREACION,       
+              s.ID_TIPOUS,            
+              serv.NOMBRE_SERVICIO,
+              p.CORREO,
+              e.NOMBRE AS NOMBRE_EMPLEADO
+              FROM Solicitud s
+              LEFT JOIN Servicio serv
+                  ON serv.ID_SERVICIO = s.ID_SERVICIO
+              LEFT JOIN Tipo_usuario tus           
+              ON tus.ID_TIPOUS = s.ID_TIPOUS
+              LEFT JOIN Persona p
+              ON p.ID_PERSONA = s.ID_PERSONA
+              LEFT JOIN Persona e
+              ON e.ID_PERSONA = s.ID_PERSONA_EMPLEADO
+          WHERE s.ID_SOLICITUD = :id_solicitud
+            `,
+      [id_solicitud]
     );
 
-    return res.json(result.rows[0] || null);
+    res.json(result.rows[0]);
   } catch (err) {
-    return res.status(500).json({ error: err.message });
+    res.status(500).json({ error: err.message });
   }
 };
+
 
 // ======================================================
 // CREAR SOLICITUD
 // ======================================================
 exports.create = async (req, res) => {
   try {
-    let {
-      id_solicitud,
-      id_factura,
-      id_persona,
-      id_persona_empleado,
-      id_estado,
-      observaciones,
-      id_garantia,
-      id_equipo,
-      fecha_creacion,
-      id_servicio,
-      id_tipous
-    } = req.body;
-
-    // Normalizar fecha
-    if (fecha_creacion) {
-      fecha_creacion = fecha_creacion.replace("Z", "").split(".")[0];
-    }
+    const data = req.body;
 
     const sql = `
       INSERT INTO Solicitud (
-        id_solicitud, id_factura, id_persona, id_persona_empleado, id_estado,
-        observaciones, id_garantia, id_equipo, fecha_creacion, id_servicio, id_tipous
-      )
-      VALUES (
-        :id_solicitud, :id_factura, :id_persona, :id_persona_empleado, :id_estado,
-        :observaciones, :id_garantia, :id_equipo,
-        ${fecha_creacion ? "TO_DATE(:fecha_creacion, 'YYYY-MM-DD\"T\"HH24:MI:SS')" : "NULL"},
+        id_solicitud, id_factura, id_persona, id_persona_empleado,
+        id_estado, observaciones, id_equipo,
+        fecha_creacion, id_servicio, id_tipous
+      ) VALUES (
+        :id_solicitud, :id_factura, :id_persona, :id_persona_empleado,
+        :id_estado, :observaciones, :id_equipo,
+        TO_DATE(:fecha_creacion, 'YYYY-MM-DD'),
         :id_servicio, :id_tipous
       )
     `;
 
-    const result = await db.execute(
-      sql,
-      {
-        id_solicitud,
-        id_factura,
-        id_persona,
-        id_persona_empleado,
-        id_estado,
-        observaciones,
-        id_garantia,
-        id_equipo,
-        fecha_creacion,
-        id_servicio,
-        id_tipous
-      },
-      { autoCommit: true }
-    );
+    await db.execute(sql, data, { autoCommit: true });
 
-    return res.status(201).json({ message: 'Solicitud creada correctamente' });
+    res.status(201).json({ message: "Solicitud creada correctamente" });
 
   } catch (err) {
     console.error("ERROR create:", err);
-    return res.status(500).json({ error: err.message });
+    res.status(500).json({ error: err.message });
   }
 };
+
+
 
 // ======================================================
 // ACTUALIZAR SOLICITUD
@@ -117,54 +113,51 @@ exports.create = async (req, res) => {
 exports.update = async (req, res) => {
   try {
     const { id } = req.params;
-    let {
-      id_factura,
-      id_persona,
-      id_persona_empleado,
+
+    // Solo los campos editables del formulario
+    const {
       id_estado,
       observaciones,
       id_garantia,
-      id_equipo,
-      id_servicio
-      
+      id_servicio,
+      id_tipous
     } = req.body;
 
-    await db.execute(
-      `
-      UPDATE Solicitud SET
-        id_factura = :id_factura,
-        id_persona = :id_persona,
-        id_persona_empleado = :id_persona_empleado,
+    const sql = `
+      UPDATE solicitud
+      SET
         id_estado = :id_estado,
         observaciones = :observaciones,
         id_garantia = :id_garantia,
-        id_equipo = :id_equipo,
-        id_servicio = :id_servicio
-         
-      WHERE id_solicitud = :id
-      `,
+        id_servicio = :id_servicio,
+        id_tipous = :id_tipous
+      WHERE id_solicitud = :id_solicitud
+    `;
+
+    await db.execute(
+      sql,
       {
-        id_factura,
-        id_persona,
-        id_persona_empleado,
+        id_solicitud: id,
         id_estado,
         observaciones,
         id_garantia,
-        id_equipo,
-        fecha_creacion,
         id_servicio,
-        
-        id
+        id_tipous
       },
       { autoCommit: true }
     );
 
-    return res.json({ message: 'Solicitud actualizada correctamente' });
+    res.json({ message: "Solicitud actualizada correctamente" });
 
   } catch (err) {
-    return res.status(500).json({ error: err.message });
+    console.error("ERROR UPDATE:", err);
+    res.status(500).json({ error: err.message });
   }
 };
+
+
+
+
 
 // ======================================================
 // ELIMINAR SOLICITUD
