@@ -112,9 +112,13 @@ exports.create = async (req, res) => {
 // ======================================================
 exports.update = async (req, res) => {
   try {
-    const { id } = req.params;
+    const { id_solicitud } = req.params;
 
-    // Solo los campos editables del formulario
+    // LOG 1: Verificar que se recibió la ruta
+    console.log('\n=== ACTUALIZAR SOLICITUD ===');
+    console.log('ID recibido:', id_solicitud);
+    console.log('Payload recibido:', JSON.stringify(req.body, null, 2));
+
     const {
       id_estado,
       observaciones,
@@ -123,21 +127,33 @@ exports.update = async (req, res) => {
       id_tipous
     } = req.body;
 
+    // LOG 2: Verificar cada campo
+    console.log('Campos extraídos:', {
+      id_solicitud,
+      id_estado,
+      observaciones,
+      id_garantia,
+      id_servicio,
+      id_tipous
+    });
+
     const sql = `
-      UPDATE solicitud
+      UPDATE SOLICITUD
       SET
-        id_estado = :id_estado,
-        observaciones = :observaciones,
-        id_garantia = :id_garantia,
-        id_servicio = :id_servicio,
-        id_tipous = :id_tipous
-      WHERE id_solicitud = :id_solicitud
+        ID_ESTADO = :id_estado,
+        OBSERVACIONES = :observaciones,
+        ID_GARANTIA = :id_garantia,
+        ID_SERVICIO = :id_servicio,
+        ID_TIPOUS = :id_tipous
+      WHERE ID_SOLICITUD = :id_solicitud
     `;
 
-    await db.execute(
+    console.log('SQL:', sql);
+
+    const result = await db.execute(
       sql,
       {
-        id_solicitud: id,
+        id_solicitud,
         id_estado,
         observaciones,
         id_garantia,
@@ -147,15 +163,24 @@ exports.update = async (req, res) => {
       { autoCommit: true }
     );
 
-    res.json({ message: "Solicitud actualizada correctamente" });
+    // LOG 3: Verificar resultado
+    console.log('Resultado de ejecución:', result);
+    console.log('Rows afectadas:', result.rowsAffected);
+    console.log('=== FIN ACTUALIZAR ===\n');
+
+    res.json({ 
+      message: "Solicitud actualizada correctamente",
+      rowsAffected: result.rowsAffected 
+    });
 
   } catch (err) {
-    console.error("ERROR UPDATE:", err);
+    console.error('=== ERROR EN UPDATE ===');
+    console.error('Mensaje:', err.message);
+    console.error('Stack:', err.stack);
+    console.error('=== FIN ERROR ===\n');
     res.status(500).json({ error: err.message });
   }
 };
-
-
 
 
 

@@ -5,6 +5,8 @@ import { useAuth } from './auth/AuthProvider';
 import { useLocation } from 'react-router-dom';
 import { v4 as uuidv4 } from 'uuid';
 import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
+    
 
 
 
@@ -13,6 +15,7 @@ function RequestForm() {
   const userId = auth?.user?.id_persona;
 
   const location = useLocation();
+  const navigate = useNavigate();
 
   const [formData, setFormData] = useState({
     id_solicitud: uuidv4(),
@@ -154,10 +157,10 @@ function RequestForm() {
         console.log('Respuesta servidor:', res?.data);
         Swal.fire({
           title: "Exitoso",
-          text: "Solicitud enviada exitosamente",
+          text: "Solicitud enviada exitosamente", 
           icon: "success"
         });
-        resetForm();
+        resetForm(); navigate("/solicitudes")
       } catch (err) {
         console.error('Error enviando solicitud:', err);
         console.error('Error response data:', err.response?.data);

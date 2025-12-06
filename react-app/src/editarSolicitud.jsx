@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { useAuth } from './auth/AuthProvider';
@@ -15,6 +15,7 @@ const EditarSolicitud = () => {
     const noData = "No hay datos cargados";
     const location = useLocation();
     const id_solicitud = location?.state?.id_solicitud ?? null;
+    const navigate = useNavigate();
 
     useEffect(() => {
         const fetchServicios = async () => {
@@ -63,36 +64,52 @@ const EditarSolicitud = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
 
+        // Validaciones
+        if (!formData.ID_SERVICIO) {
+            Swal.fire('Error', 'El campo "Servicio" es obligatorio', 'error');
+            return;
+        }
+
+        if (!formData.ID_TIPOUS) {
+            Swal.fire('Error', 'El campo "Tipo de Usuario" es obligatorio', 'error');
+            return;
+        }
+
         try {
-            // Solo enviamos los campos editables
             const payload = {
-                ID_ESTADO: formData.ID_ESTADO,
-                OBSERVACIONES: formData.OBSERVACIONES,
-                ID_GARANTIA: formData.ID_GARANTIA,
-                ID_SERVICIO: formData.ID_SERVICIO,
-                ID_TIPOUS: formData.ID_TIPOUS
+                id_estado: formData.ID_ESTADO ? parseInt(formData.ID_ESTADO, 10) : null,
+                observaciones: formData.OBSERVACIONES || '',
+                id_garantia: formData.ID_GARANTIA ? parseInt(formData.ID_GARANTIA, 10) : null,
+                id_servicio: parseInt(formData.ID_SERVICIO, 10),
+                id_tipous: parseInt(formData.ID_TIPOUS, 10) // <-- OBLIGATORIO
             };
 
-            console.log("DATA A ENVIAR:", payload); // Para depuración
+            console.log("ID Solicitud:", id_solicitud);
+            console.log("Payload enviado:", payload);
 
-            await axios.put(
+            const response = await axios.put(
                 `http://localhost:26001/api/solicitud/${id_solicitud}`,
                 payload,
                 { headers: { ...getAuthHeader() } }
             );
 
+            console.log("Respuesta del servidor:", response.data);
+
             Swal.fire({
-                title: "Exitoso",
-                text: "Solicitud actualizada exitosamente",
+                title: "¡Éxito!",
+                text: "Solicitud actualizada correctamente",
                 icon: "success"
+            }).then(() => {
+                navigate('/solicitudes');
             });
 
         } catch (err) {
-            console.error('Error enviando solicitud:', err);
-            const serverMsg = err.response?.data?.error || err.response?.data?.message || JSON.stringify(err.response?.data) || err.message;
+            console.error('Error completo:', err);
+            console.error('Response error:', err.response?.data);
+            const serverMsg = err.response?.data?.error || err.message;
             Swal.fire({
                 title: "Error",
-                text: `Error al actualizar la solicitud: ${serverMsg}`,
+                text: `Error al actualizar: ${serverMsg}`,
                 icon: "error"
             });
         }
